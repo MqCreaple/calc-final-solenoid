@@ -21,6 +21,7 @@ Usually, when we learn about the uniformity of solenoid's magnetic fields, teach
 $$
 \oint \vec{B} \cdot \mathrm{d}\vec{l} = \mu_0 I_{\mathrm{enclosed}}
 $$
+
 Here need an animation of a wire and a circular path around it to demonstrate how to use Ampere's Law]
 
 The formula seems much cleaner than the Biot-Savart law. It simply suggests that if we integrate the magnetic field along some path, the value will be proportional to the enclosed electric current's magnitude. This makes sense, as many physical quantities are proportional to the inverse square of the distance, such as gravitational force and electric force.
