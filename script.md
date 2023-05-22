@@ -36,3 +36,32 @@ Now consider the two parallel lines; since the total integration must be zero, t
 
 However, we can see that this approach did not explain our confusion on the Biot-Savart Law: why is the magnetic field the same at all points inside the solenoid, even if we get really close to the wire? Although the Ampere Law approach is simple and elegant, a brute force calculation using the Biot-Savart Law might resolve the confusion better. 
 
+<!-- If time is enough, can add calculation of one circular ring of wire first, and demonstrate that the mag field inside the circular ring is not uniform -->
+
+## Integrating the Long Pile of Wires
+
+The essence of integration is just to sum up a lot of small things, although each of these small pieces is different. When we're considering them individually, we can think of these quantities as constant values.
+
+[Animation of one rod circulating to make the solenoid]
+We can think solenoid as much circular wire ring stacking together, and one approach to calculating the overall magnetic field at some point is to cut the circular stack into some rectangular stack, then rotate the rectangular stack to make it into a solenoid.
+
+[Animation of the plane cuts through the stack]
+
+Here we have a plane located at $z = 0$, which cuts through this infinitely thick stack of wire. And now, given any location on the plane, we want to know the magnetic field.
+
+[Highlight a small point on the stack]
+
+If we figure out the contribution of a small segment on the stack to the magnetic field on the point on the plane, we can then integrate this value through the $z$ axis, where the stack extends infinitely, to get the overall magnetic field on some point on the plane.
+
+Now, since we're considering an infinitely small segment on that stack, we don't know the total current passing through the segment, so we define the "density" of the current along this line as $\lambda_I$, with a unit of $\frac{A}{m}$.
+
+Recall the Biot-Savart Law:
+
+$$
+\mathrm{d}B = \frac{\mu_0}{4\pi} \frac{I\mathrm{d}\vec{l} \times \hat{r}}{r^2}
+$$
+
+We can replace $I$ with $\lambda_I \mathrm{d}\vec{l}$, $\mathrm{d}\vec{l}$ is the length we travel up that stack, or we can understand this as the thickness of that small segment. Notice the constant $\frac{\mu_0}{4\pi}$ at the begging part of the formula; since we would only like to know if the solenoid's magnetic field is uniform, we can ignore this constant and replace it with $k$ for simplicity.
+
+The value of $\mathrm{d}\vec{l}$ can be also re-retten as 
+
