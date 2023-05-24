@@ -1,67 +1,677 @@
 # Video Script
 
-## Confusion of Biot-Savart's Law
+## Confusion of Biot-Savart’s Law
 
 It is quite rare in either math or physics that a more straightforward and more elegant solution is less intuitive, but the uniformity of solenoids is one such example.
 
-[Need animation of magnetic field inside bar magnets, and the parallel magnetic field inside solenoids]
+*[Need animation of the magnetic field inside bar magnets and the parallel magnetic field inside solenoids]*
 
 Solenoids are a type of electromagnet formed by a helical coil of wire whose length is much greater than its diameter; in calculations, we often assume that the solenoid is infinitely long. One of the great features of solenoids is they generate magnetic fields with the same pattern as bar magnets. That is to say, the magnetic field inside solenoids is uniform: the field lines are parallel to the length of the solenoid, and the strength will not change as we move around the space inside the solenoid.
 
-Although this feature is that fascinating, I couldn't really understand it when I first learned it. One of the formulas that describe the relationship between magnetic fields and moving current is Biot-Savart Law, which states:
+Although this feature is that fascinating, I couldn’t really understand it when I first learned it. One of the formulas that describe the relationship between magnetic fields and moving current is Biot-Savart Law, which states:
 
 $$
 \mathrm{d}B = \frac{\mu_0}{4\pi} \frac{I\mathrm{d}\vec{l} \times \hat{r}}{r^2}
 $$
 
-We don't need to care about other variables of the formula at the moment; just look at $r$, the distance between the wire and the point of measurement, and we can find that the uniformity of the magnetic field is not intuitive at all. As we get closer and closer to the wire, the magnetic field will become stronger and stronger, finally reaching infinity; how come the magnetic field is uniform if we get really close to the wire in the solenoid?
+The formula basically states that: the direction of the magnetic field is parallel to the cross product of the electric current vector with the displacement vector from the current to the observation point, and its magnitude is proportional to the inverse square of the distance.
 
-Usually, when we learn about the uniformity of solenoid's magnetic fields, teachers will use another approach to prove it, which is Ampere's Law, another formula that relates magnetic fields and moving current:
+We don’t need to care about other variables of the formula at the moment; just look at *r*, the distance between the wire and the point of measurement, and then we can find that the uniformity of the magnetic field is not intuitive at all. As we get closer and closer to the wire, the magnetic field will become stronger and stronger, finally reaching infinity; how come the magnetic field is uniform if we get really close to the wire in the solenoid?
+
+Usually, when we learn about the uniformity of solenoid’s magnetic fields, teachers will use another approach to prove it, which is Ampere’s Law, another formula that relates magnetic fields and moving current, which you can prove to be equivalent to Biot-Savart Law if you learned more advanced calculus:
 
 $$
-\oint \vec{B} \cdot \mathrm{d}\vec{l} = \mu_0 I_{\mathrm{enclosed}}
+\oint \vec B\cdot\mathrm d\vec l = \mu_0I_{\text{enclosed}}
 $$
 
-Here need an animation of a wire and a circular path around it to demonstrate how to use Ampere's Law]
+*[Here need an animation of a wire and a circular path around it to demonstrate how to use Ampere’s Law]*
 
-The formula seems much cleaner than the Biot-Savart law. It simply suggests that if we integrate the magnetic field along some path, the value will be proportional to the enclosed electric current's magnitude. This makes sense, as many physical quantities are proportional to the inverse square of the distance, such as gravitational force and electric force.
+The formula seems much cleaner than the Biot-Savart law. It simply suggests that if we integrate the magnetic field along some path, the value will be proportional to the enclosed electric current’s magnitude. This makes sense, as many physical quantities are proportional to the inverse square of the distance, such as gravitational force and electric force.
 
-[Need animation of applying Ampere's Law to a solenoid, and use right-hand rule to show that there will be no magnetic field in the vertical direction]
+[Need animation of applying Ampere’s Law to a solenoid, and use right-hand rule to show that there will be no magnetic field in the vertical direction]
 
 We can create an imaginary closed, rectangular loop inside the solenoid. Since there are no enclosed currents, the integration must be zero. And if we consider the cross-sectional view of a solenoid, we can see that one side contains the wire carrying current into the page, and the other side contains the wire carrying current out of the page. The vertical component of the magnetic field generated by these two wires will cancel each other out since the magnetic field generated by these into-the-page wires and out-of-the-page wires will circulate in different directions, and the integration will be zero on the two vertical lines.
 
-[Move the parallel line up and down]
+*[Move the parallel line up and down]*
 
 Now consider the two parallel lines; since the total integration must be zero, these two lines must have magnetic fields with the same magnitude but opposite directions on them. Furthermore, we can move these two parallel lines around, and they will always have equal but opposite magnetic fields on them; this way, we can prove that the magnetic field inside the solenoid is uniform.
 
-However, we can see that this approach did not explain our confusion on the Biot-Savart Law: why is the magnetic field the same at all points inside the solenoid, even if we get really close to the wire? Although the Ampere Law approach is simple and elegant, a brute force calculation using the Biot-Savart Law might resolve the confusion better. 
+However, we can see that this approach did not explain our confusion on the Biot-Savart Law: why is the magnetic field the same at all points inside the solenoid, even if we get really close to the wire? Although the Ampere Law approach is simple and elegant, a brute force calculation using the Biot-Savart Law might resolve the confusion better.
 
-<!-- If time is enough, can add calculation of one circular ring of wire first, and demonstrate that the mag field inside the circular ring is not uniform -->
+TODO: explain Biot-Savart Law first
 
 ## Integrating the Long Pile of Wires
 
-The essence of integration is just to sum up a lot of small things, although each of these small pieces is different. When we're considering them individually, we can think of these quantities as constant values.
+The essence of integration is to sum up a lot of small things, although each of these small pieces is different. When we’re considering them individually, we can think of these quantities as constant values.
 
-[Animation of one rod circulating to make the solenoid]
-We can think solenoid as much circular wire ring stacking together, and one approach to calculating the overall magnetic field at some point is to cut the circular stack into some rectangular stack, then rotate the rectangular stack to make it into a solenoid.
+*[Animation of one rod circulating to make the solenoid]* We can think of solenoid as much circular wire ring stacking together, and one approach to calculating the overall magnetic field at some point is to cut the circular stack into some rectangular stack, then rotate the rectangular stack to make it into a solenoid.
 
-[Animation of the plane cuts through the stack]
+*[Animation of the plane cuts through the stack]*
 
-Here we have a plane located at $z = 0$, which cuts through this infinitely thick stack of wire. And now, given any location on the plane, we want to know the magnetic field.
+Here we have a plane located at $z=0$, which cuts through this infinitely thick stack of wire. And now, given any location $(x, y)$ on the plane, we want to know the magnetic field.
 
-[Highlight a small point on the stack]
+*[Highlight a small point on the stack]*
 
 If we figure out the contribution of a small segment on the stack to the magnetic field on the point on the plane, we can then integrate this value through the $z$ axis, where the stack extends infinitely, to get the overall magnetic field on some point on the plane.
 
-Now, since we're considering an infinitely small segment on that stack, we don't know the total current passing through the segment, so we define the "density" of the current along this line as $\lambda_I$, with a unit of $\frac{A}{m}$.
+Now, since we’re considering an infinitely small segment on that stack, we don’t know the total current passing through the segment, so we define the “density” of the current along this line as $\lambda_I$, with a unit of $\frac{A}{m}$.
 
 Recall the Biot-Savart Law:
 
 $$
-\mathrm{d}B = \frac{\mu_0}{4\pi} \frac{I\mathrm{d}\vec{l} \times \hat{r}}{r^2}
+\mathrm{d}B = \frac{\mu_0}{4\pi} \frac{I\mathrm{d}\vec{l} \times \hat{r}}{|\vec{r}|^2}
 $$
 
-We can replace $I$ with $\lambda_I \mathrm{d}\vec{l}$, $\mathrm{d}\vec{l}$ is the length we travel up that stack, or we can understand this as the thickness of that small segment. Notice the constant $\frac{\mu_0}{4\pi}$ at the begging part of the formula; since we would only like to know if the solenoid's magnetic field is uniform, we can ignore this constant and replace it with $k$ for simplicity.
+We can replace $I$ with $\lambda_I\mathrm dz$ is the length we travel up that stack, or we can understand this as the thickness of that small segment. Notice the constant $\frac{\mu_0}{4\pi}$ at the begging part of the formula; since we would only like to know if the solenoid’s magnetic field is uniform, we can ignore this constant and replace it with $k$ for simplicity. For the same consideration, we can re-write $\mathrm{d}\vec{l}$ as the product of a unit vector and a scaler as the following:
 
-The value of $\mathrm{d}\vec{l}$ can be also re-retten as 
+$$
+\begin{bmatrix}1\\0\\0 \end{bmatrix} \mathrm{d}l
+$$
 
+Notice that the $\mathrm{d}l$ here does not have the vector symbol on it, representing that this is a scaler. The unit vector here is pointing to the $x$ directions since the electric here is flowing to the $x$ directions.
+
+Now, you may discover that we have two variables of integration involved in the equation, meaning that we have to do two integrations. For the first integration, we will integrate along the $z$ axis, and the final equation we’re integrating is:
+
+$$
+\vec B{(x,y,0)}=k\oint_{-\infty}^\infty {\frac{\lambda_I\mathrm{d}z
+     \begin{bmatrix}
+        1\\0\\0
+    \end{bmatrix}\mathrm{d}l\times\hat{r}
+}{
+    |\vec r|^2
+}}
+
+$$
+
+The $\hat{r}$ here represents the unit vector pointing from some point of the wire to the point of observation. Considering some points on the stack have the coordinate of $(0,0,z)$, then the unit vector to point $(x, y,0)$ on the plane is
+
+$$
+\vec{r}=\begin{bmatrix}x\\y\\-z\end{bmatrix}
+$$
+
+A unit vector could be expressed as the original vector divided by its length so that we can replace the $\hat r$ with $\frac{\vec r}{|\vec{r}|}$. And the equation is now like this:
+
+$$
+
+\vec B{(x,y,0)}=k\lambda_I\int_{-\infty}^\infty {\frac{
+     \begin{bmatrix}
+        1\\0\\0
+    \end{bmatrix}\times\vec{r}\mathrm{d}l\mathrm{d}z
+}{
+    |\vec r|^3
+}}
+
+$$
+
+Now, plug in the expression of $\vec r$, and expand the expression for distance of $|\vec r|$, we have:
+
+$$
+
+\vec B{(x,y,0)}=k\lambda_I\int_{-\infty}^\infty {\frac{
+     \begin{bmatrix}
+        1\\0\\0\end{bmatrix}\times\begin{bmatrix}x\\y\\-z\end{bmatrix}\mathrm{d}l\mathrm{d}z
+}{
+    (\sqrt{x^2 + y^2 + z^2})^3
+}}
+
+$$
+
+Observe this cross-product here; the generated magnetic field is perpendicular to the direction for currents to flow, which fits the previous explanation of the Biot-Savart Law.
+
+Evaluate the cross-product, and we can get the following:
+
+$$
+\begin{bmatrix}
+        1\\0\\0\end{bmatrix}\times\begin{bmatrix}x\\y\\-z\end{bmatrix} = \begin{vmatrix}i & j & k \\ 1 & 0 & 0\\ x & y & z\end{vmatrix}=\begin{bmatrix}0\\z\\y\end{bmatrix}
+$$
+
+From this expression, we can see that there is no magnetic field in $x$ directions. And now we have:
+
+$$
+
+\vec B{(x,y,0)}=k\lambda_I\oint_{-\infty}^\infty {\frac{
+     \begin{bmatrix}0\\z\\y\end{bmatrix}\mathrm{d}l\mathrm{d}z
+}{
+    (x^2 + y^2 + z^2)^\frac{3}{2}
+}}
+
+$$
+
+ Since the output of this integration $\vec B (x, y, 0)$, we can evaluate it from different components. We can first find the magnetic field at $y$ direction:
+
+$$
+B_j(x, y, 0) =k\lambda_I\oint_{-\infty}^\infty {\frac{
+     z\mathrm{d}l\mathrm{d}z
+}{
+    (x^2 + y^2 + z^2)^\frac{3}{2}
+}}
+
+$$
+
+The expression seems very complicated. However, we can see that our variable of integration is $z$, and any variables other than $z$ can be considered constant. For example, we can replace $x^2 + y^2$ with $\alpha^2$, and we have:
+
+$$
+B_j(x, y, 0) =k\lambda_I\oint_{-\infty}^\infty {\frac{
+     z\mathrm{d}l\mathrm{d}z
+}{
+    (\alpha^2 + z^2)^\frac{3}{2}
+}}
+
+$$
+
+Although it seems hard to directly evaluate this integral, the pattern of $\alpha^2 + z^2$ reminds us about trig-substitution. In this integral, we can substitute our variable of integration, $z$, to $\alpha\tan\theta$, since the identity of $1+\tan^2\theta = \sec^2\theta$ could be helpful here. Since we changed our variable of integration from $z$ to $\theta$, we will have to find the relationship between $\mathrm{d}z$ and $\mathrm{d}\theta$:
+
+$$
+\begin{align*}z &= \alpha\tan\theta \\ \mathrm{d}z &= \alpha\sec^2\theta\end{align*}
+$$
+
+Also, the bounds of the integration should be changed so that the new bound will let $\alpha\tan\theta$ fall into the range of $(-\infty, \infty)$. And this bound is $a=-\frac{\pi}{2}, b = \frac{\pi}{2}$
+
+Now we have the following expression:
+
+$$
+B_j(x, y, 0) =k\lambda_I\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{
+     \alpha\tan\theta (\alpha\sec^2\theta\mathrm{d}\theta) \mathrm{d}l
+}{
+    (\alpha^2 + \alpha^2\tan^2\theta)^\frac{3}{2}
+}}
+
+$$
+
+Put the command factor $\alpha$ in the front of the denominator, and we have:
+
+$$
+
+\begin{align*}B_j(x, y, 0)
+&=k\lambda_I\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{ \alpha^2\tan\theta (\sec^2\theta\mathrm{d}\theta) \mathrm{d}l }{ [\alpha^2(1 + 1\tan^2\theta)]^\frac{3}{2} }}\\
+
+&=\frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{ \tan\theta (\sec^2\theta\mathrm{d}\theta) \mathrm{d}l }{ (1 + \tan^2\theta)^\frac{3}{2} }} \end{align*}
+
+$$
+
+Using the trig identity mentioned previously, we have:
+
+$$
+\begin{align*}B_j(x, y, 0)
+
+&=\frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{
+     \tan\theta (\sec^2\theta\mathrm{d}\theta) \mathrm{d}l
+}{
+    (\sec^2\theta)^\frac{3}{2}
+}}\\
+
+&=\frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{
+     \tan\theta (\sec^2\theta\mathrm{d}\theta) \mathrm{d}l
+}{
+    \sec^3\theta
+}} \\
+
+&= \frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{
+     \tan\theta \mathrm{d}\theta \mathrm{d}l
+}{
+    \sec\theta
+}}\end{align*}
+$$
+
+Express $\tan\theta$ and $\sec\theta$ in the form of sin and cos, and we have:
+
+$$
+\begin{align*}B_j(x, y, 0)
+
+&= \frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\left(\frac{\sin\theta}{\cos\theta}\right)\cdot\cos\theta\mathrm{d}\theta\mathrm{d}l}\\
+
+&= \frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\sin\theta\mathrm{d}\theta\mathrm{d}l}\\
+
+&= \frac{k\lambda_I}{\alpha}\cos\theta\Big\rvert_{-\frac{\pi}{2}}^{\frac{\pi}{2}}\mathrm{d}l\\
+
+&=0
+\end{align*}
+$$
+
+[Need animation to rotate the solenoid around and show that the original vertical direction has no magnetic field]
+
+Now we found that there will be no magnetic field at point $(x, y, 0)$ in the $y$ direction. This is not surprising as in the previous ampere’s law method, we’ve explained that in a solenoid, there will be no magnetic field generated in the vertical direction.
+
+Now we can try to evaluate the magnetic field generated at the $z$ direction. The form of the equation is very similar, but the variable at the numerator is changed from $z$ to $y$:
+
+$$
+B_k(x, y, 0) =k\lambda_I\oint_{-\infty}^\infty {\frac{
+     y\mathrm{d}l\mathrm{d}z
+}{
+    (x^2 + y^2 + z^2)^\frac{3}{2}
+}}
+
+$$
+
+Since the equations share a similar pattern, we can use similar approaches to evaluate them. After replacing the   non-integration variables $x$ and $y$ with $\alpha$, we get:
+
+$$
+B_k(x, y, 0) =k\lambda_I\oint_{-\infty}^\infty {\frac{
+     y\mathrm{d}l\mathrm{d}z
+}{
+    (\alpha^2 + z^2)^\frac{3}{2}
+}}
+
+$$
+
+And trig substitution of $z=\alpha\tan\theta$ still applies here.
+
+$$
+\begin{align*}
+
+B_k(x, y, 0) &=k\lambda_I\oint_{-\infty}^\infty {\frac{
+     y\mathrm{d}l\mathrm{d}z
+}{
+    (\alpha^2[1 + \tan^2\theta])^\frac{3}{2}
+}}\\
+
+&= k\lambda_I\oint_{-\infty}^\infty {\frac{
+     y\alpha\sec^2\theta\mathrm{d}\theta\mathrm{d}l
+}{
+    (\alpha^2[1 + \tan^2\theta])^\frac{3}{2}
+}}
+\end{align*}
+$$
+
+Simplify it as the previous integral:
+
+$$
+\begin{align*}
+
+&=k\lambda_I\oint_{-\infty}^\infty {\frac{y\alpha\sec^2\theta\mathrm{d}\theta\mathrm{d}l
+}{\alpha^3\sec^3\theta}}\\
+
+&= \frac{k\lambda_I}{\alpha^2}\oint_{-\infty}^\infty {\frac{y\mathrm{d}\theta\mathrm{d}l
+}{\sec\theta}}
+\end{align*}
+$$
+
+Since $y$ on the top is not the variable we’re integrating, we can consider it as a constant and move it to the front of the integral.
+
+$$
+\begin{align*}
+&= \frac{k\lambda_I}{\alpha^2}\oint_{-\infty}^\infty {\frac{y\mathrm{d}\theta\mathrm{d}l
+}{\sec\theta}}\\
+
+&= \frac{yk\lambda_I}{\alpha^2}\oint_{-\infty}^\infty {\frac{1
+}{\sec\theta}}\mathrm{d}\theta\mathrm{d}l\\
+
+&= \frac{yk\lambda_I}{\alpha^2}\oint_{-\infty}^\infty {\cos\theta}\mathrm{d}\theta\mathrm{d}l\\
+
+&= \frac{yk\lambda_I}{\alpha^2}\sin\theta\Big\rvert_{-\frac{\pi}{2}}^{\frac{\pi}{2}}\mathrm{d}l\\
+
+&= \frac{2yk\lambda_I}{x^2+y^2}\mathrm{d}l
+\end{align*}
+$$
+
+This result is indeed compatible with our initial conclusion that the magnetic field inside solenoids only exists in the horizontal direction. However, seeing its denominator containing the location variables $x$ and $y$, we still cannot solve our initial confusion about the uniformity of the magnetic field inside solenoids. And now, it is time for us to use another integral to resolve our confusion.
+
+## Integrate the stack of wire in a circular path
+
+ Through the previous integration, we already know the contribution of the magnetic field from an infinitely small section of the circular stack. Now, to research the actual characteristics of magnetic fields inside a solenoid, we will need to do another integration to “accumulate” the contribution of small stacks.
+
+[Need animation here of a small stack turning around the circular path, with a coordinate system on it]
+
+Before we start, we need to notice the coordinate system we used in the previous integration is a relative position. The $x$ there represents the direction of the current. And $z$ is the direction where the stack grows infinitely; lastly, $y$ is the direction perpendicular to the other two.
+
+If we turn the small stack around a circular path, these coordinates have no relation to the absolute coordinate on the circle; they just represent a relative relationship to the direction of the flow of current.  For clarity reasons, we will add primes whenever referring to those relative directions.
+
+[Need animation of circle turning around]
+
+Now consider infinitely many of those small stacks enclosed in a circle of radius $R$; if we can prove that the magnetic field at the line $y=0$ is constant, we can then say that the magnetic field inside solenoids is uniform. This is because of the symmetricity of circles; if we’d like to know the magnetic field at a point not on the line, we can turn the circle around at some angles.
+
+Similar to the previous integration, we can define $\vec r$ as the vector pointing from a point on the circumference to the point of measurement that lies on the line $y=0$. And the value of $\vec r$ is:
+
+$$
+\begin{bmatrix}
+x-R\cos\theta\\
+-R\sin\theta
+\end{bmatrix}
+$$
+
+We can also define a vector $\vec c$ that points from the circumference to the center of the circle; the value is basically $\vec r$ without $x$:
+
+$$
+\begin{bmatrix}
+-R\cos\theta\\
+-R\sin\theta
+\end{bmatrix} =
+
+\begin{bmatrix}
+-\cos\theta\\
+-\sin\theta
+\end{bmatrix}R
+$$
+
+From the previous expression of $B_k(x,y,0)$, we know that we will need the value of $\vec{y^\prime}$, the vector perpendicular to the flow of the current, and $\vec x^\prime$, the vector representing the flow of current.
+
+Now consider the magnitude of the vector $\vec y^\prime$. Since the denominator of the previous integral is ${x^\prime}^2 + {y^\prime}^2$, representing the square of the distance from the stack to the point of measurement, which, in the current integral, could be represented as $|\vec r|^2$ . $y^\prime$ is then the distance in one direction along the coordinate system from the previous integral.
+
+[Need animation demonstrating the projection of vector]
+
+If we would like to gain the magnitude of one component of a vector, we can project that vector on a unit vector pointing to that specific direction. This is where dot products are involved. The magnitude of $\vec r$’s projection on $\vec c$ could be defined as $|\vec r|\cos\theta$, where $\theta$ is the angle between $\vec c$ and $\vec r$. Since the dot product of $\vec A$ and $\vec B$ can be represented as: $|\vec A||\vec B|\cos\theta$, we can gain the value of $|\vec r|\cos\theta$ by the following expression:
+
+$$
+y^\prime = \frac{\vec c \cdot \vec r}{|\vec c|}
+$$
+
+Write it in terms of components, and we get:
+
+$$
+\begin{align*}
+\frac{
+R\begin{bmatrix}
+-\cos\theta\\
+-\sin\theta
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+x-R\cos\theta\\
+-R\sin\theta
+\end{bmatrix}
+}{
+R
+} &= \begin{bmatrix}
+-\cos\theta\\
+-\sin\theta
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+x-R\cos\theta\\
+-R\sin\theta
+\end{bmatrix}\\
+
+&= -x\cos\theta+R\cos^2\theta+R\sin^2\theta
+\end{align*}
+$$
+
+Here we use $R$ to replace $\vec c$ just because the magnitude of a vector pointing from the circumference to the center must be the radius of the circle.
+
+Now we found that the expression contains two $R$ , but the first term does not have $R$. For simplicity reasons, we define $\beta$ as $\frac{x}{R}$ so that we can factor $R$ out:
+
+$$
+R(-\beta\cos\theta+\cos^2\theta+\sin^2\theta)\\
+= R(1 - \beta\cos\theta)
+$$
+
+Using Pythagorean’s identity, we can simplify the expression.
+
+Now recall the previous expression we’ve obtained:
+
+$$
+\frac{2y^\prime k\lambda_I}{{x^\prime}^2+{y^\prime}^2}\mathrm{d}l
+$$
+
+We can replace $y^\prime$ with $R(1 - \beta\cos\theta)$ and the denominator with $|\vec r|^2$, and we have:
+
+$$
+\begin{align*}
+&=\frac{2R(1 - \beta\cos\theta) k\lambda_I}{|\vec r|^2}\mathrm{d}l\\
+
+&= \frac{2R(1 - \beta\cos\theta) k\lambda_I}{(x-R\cos\theta)^2 + (R\cos\theta)^2}\mathrm{d}l\\
+
+&= \frac{2R(1 - \beta\cos\theta) k\lambda_I}{x^2-2xR\cos\theta+R^2\cos^2\theta+R^2\sin^2}\mathrm{d}l\\
+
+\end{align*}
+$$
+
+Notice that the pattern of the denominator is very similar to that of the evaluation of the dot product, and we can apply Pythagorean’s identity and factor $R$ out.
+
+$$
+\begin{align*}
+&= \frac{2R(1 - \beta\cos\theta) k\lambda_I}{x^2-2xR\cos\theta+R^2}\mathrm{d}l\\
+
+&= \frac{2\cancel{R}(1 - \beta\cos\theta) k\lambda_I}{R^{\cancel{2}}(\beta^2-2\beta\cos\theta+1)}\mathrm{d}l\\
+
+&= \frac{2(1 - \beta\cos\theta) k\lambda_I}{R(\beta^2-2\beta\cos\theta+1)}\mathrm{d}l
+\end{align*}
+$$
+
+Now it seems that we can start doing the integration. But the problem here is that the variable we’re integrating is $\mathrm{d}l$, but we used $\theta$ in the expression. Now recall the meaning of $\mathrm{d}l$; it represents the infinitely small path for electric currents to travel. In our case, $\mathrm{d}l$ should be a small distance we travelled on the circumference when we turn a small angle of $\mathrm{d}\theta$.  
+
+[animation of turning around theta, and indicate the change in circumference]
+
+Consider a circle of radius $R$. If we displace the angle by $\theta$, then we will gain a linear displacement of $R\theta$ on the circumference. This worked the same when the $\theta$ is small. So we have:
+
+$$
+\mathrm{d}l = R\mathrm{d}\theta
+$$
+
+Replace $\mathrm{d}l$ with this, and we have:
+
+$$
+\mathrm{d}B =\frac{2(1 - \beta\cos\theta) k\lambda_I}{\beta^2-2\beta\cos\theta+1}\mathrm{d}\theta
+
+$$
+
+And the magnetic field at $(x, 0)$ is:
+
+$$
+B(x,0)=\int_{0}^{2\pi}\frac{2(1 - \beta\cos\theta) k\lambda_I}{\beta^2-2\beta\cos\theta+1}\mathrm{d}\theta
+$$
+
+Recall the definition of $\beta$, which is $\beta = \frac{x}{R}$, we found that this expression is still related to the location variable, $x$. Now we need to prove that after this integration, the expression is no longer related to $x$ so that we can say the magnetic field generated is uniform.
+
+## Proving that the Integration is Constant
+
+First, we can throw the constant value of $k, \lambda_I$ and $2$ out to make the expression cleaner. And we have:
+
+$$
+\int_{0}^{2\pi}\frac{1 - \beta\cos\theta }{\beta^2-2\beta\cos\theta+1}\mathrm{d}\theta
+$$
+
+Having two $\cos\theta$ at both the top and the bottom is pretty messy; we want to do some algebraic manipulations so that we will separate the expression that contains a term with only $\cos\theta$ on the bottom. If we can make the numerator contain a term that is the factor of the denominator, we can then get rid of that $\cos\theta$. Now observe that the $\cos\theta$ at the top is half of the $\cos\theta$ at the bottom; we can try to put the value of the denominator to the numerator with a factor of $0.5$, and put some other things to make the expression same as before.
+
+$$
+\begin{align*}
+&\frac{\frac{1}{2}(\beta^2-2\beta\cos\theta+1) + \text{sth.}}{\beta^2-2\beta\cos\theta+1}\mathrm{d}\theta \\
+
+\end{align*}
+$$
+
+Now we just represent that something as $s$, and we can calculate it as the following:
+
+$$
+\begin{align*}
+\frac{1}{2}(\beta^2-2\beta\cos\theta+1) + s &= 1 - \beta\cos\theta \\
+s
+
+&= 1- \beta\cos\theta -  \frac{1}{2}(\beta^2-2\beta\cos\theta+1)\\
+
+&= \frac{1}{2}-\frac{1}{2}\beta^2\\
+
+&= \frac{1-\beta^2}{2}
+\end{align*}
+$$
+
+And then, we can separate the previous integration as follows:
+
+$$
+\begin{align*}
+&\int_0^{2\pi}\frac{\frac{1}{2}(\beta^2-2\beta\cos\theta+1) +\frac{1-\beta^2}{2}}{\beta^2-2\beta\cos\theta+1}\mathrm{d}\theta \\
+
+&= \int_0^{2\pi}\frac{1}{2}+\frac{1-\beta^2}{2}\cdot\frac{1}{\beta^2-2\beta\cos\theta+1}\mathrm{d}\theta
+\end{align*}
+$$
+
+Pull the constant term of a half out:
+
+$$
+\pi+\int_0^{2\pi}\frac{1-\beta^2}{2}\cdot\frac{1}{\beta^2-2\beta\cos\theta+1}\mathrm{d}\theta
+$$
+
+And since $\beta$ is not the variable of integration, we can pull that out too:
+
+$$
+\pi+\frac{1-\beta^2}{2}\int_0^{2\pi}\frac{1}{\beta^2-2\beta\cos\theta+1}\mathrm{d}\theta
+$$
+
+Now, with the current form, if the result of integration contains a denominator of $1-\beta^2$, we can eliminate $\beta$ and say that the magnetic field inside solenoids is uniform. Apply tangent half-angle identity, which states that:
+
+$$
+\cos\theta = \frac{1-\tan^2\frac{\theta}{2}}{1+\tan^2\frac{\theta}{2}}
+$$
+
+Now we can simplify the expression by eliminating the $\tan\theta$ at the top. Since the $\tan\theta$ at the top have a factor of -1 compared to the $\tan\theta$ at the bottom, and we want to eliminate it, we can put the negative of the denominator on the numerator and add some values to make it the same as the original expression, so we have:
+
+$$
+\begin{align*}
+-(1+\tan^2\frac{\theta}{2})+s &= 1 - \tan^2\frac{\theta}{2}\\
+
+s &= 1 - \cancel{\tan^2\frac{\theta}{2}} + 1 +\cancel{\tan^2\frac{\theta}{2}}\\
+
+&= 2
+\end{align*}
+$$
+
+Plug this back into the original tangent half-angle identity, and we have:
+
+$$
+\begin{align*}
+\cos\theta
+&= \frac{2-(1+\tan^2\frac{\theta}{2})}{1+\tan^2\frac{\theta}{2}}\\
+
+&= \frac{2}{1+\tan^2\frac{\theta}{2}} -1
+\end{align*}
+$$
+
+Plug this value back to the original expression to replace cosine, and we have:
+
+$$
+\begin{align*}
+&\int_0^{2\pi}\frac{1}{\beta^2-2\beta\cos\theta+1}\mathrm{d}\theta\\
+
+&= \int_0^{2\pi}\frac{1}{\beta^2 + 1-2\beta(\frac{2}{1+\tan^2\frac{\theta}{2}} -1 )}\mathrm{d}\theta\\
+
+&= \int_0^{2\pi}\frac{1}{\beta^2 + 1-\frac{4\beta}{1+\tan^2\frac{\theta}{2}} + 2\beta }\mathrm{d}\theta\\
+
+&= \int_0^{2\pi}\frac{1}{(\beta+1)^2-\frac{4\beta}{1+\tan^2\frac{\theta}{2}}}\mathrm{d}\theta\\
+
+&= \int_0^{2\pi}\frac{1+\tan^2\frac{\theta}{2}}{(\beta+1)^2(1+\tan^2\frac{\theta}{2}) - 4\beta}\mathrm{d}\theta\\
+\end{align*}
+$$
+
+Distribute $(\beta+1)^2$, and we have:
+
+$$
+\begin{align*}
+&\int_0^{2\pi}\frac{1+\tan^2\frac{\theta}{2}}{(\beta+1)^2\tan^2\frac{\theta}{2}+\beta^2+2\beta+1-4\beta}\mathrm{d}\theta\\
+
+&=\int_0^{2\pi}\frac{1+\tan^2\frac{\theta}{2}}{(\beta+1)^2\tan^2\frac{\theta}{2}+(\beta-1)^2}\mathrm{d}\theta\\
+\end{align*}
+$$
+
+Notice the numerator of the expression could be replaced by $\sec^2\frac{\theta}{2}$ by Pythagorean’s identity. And if we do a u-substitution at $\tan^2\frac{\theta}{2}$, we can cancel that secant out.
+
+$$
+\begin{align*}
+u &= \tan\frac{\theta}{2}\\
+
+\frac{\mathrm{d}u}{\mathrm{d}\theta} &= \frac{1}{2}\sec^2\\
+
+\mathrm{d}\theta &= \frac{2}{\sec^2\frac{\theta}{2}}\mathrm{d}u
+
+\end{align*}
+$$
+
+Plug in this value, and change the bound of integration:
+
+$$
+\begin{align*}
+&\int_0^{2\pi}\frac{1+\tan^2\frac{\theta}{2}}{(\beta+1)^2\tan^2\frac{\theta}{2}+(\beta-1)^2}\mathrm{d}\theta\\
+
+&= \int_{-\infty}^{\infty}\frac{\cancel{\sec^2\frac{\theta}{2}}}{(\beta+1)^2u^2+(\beta-1)^2}\frac{2}{\cancel{\sec^2\frac{\theta}{2}}}\mathrm{d}u\\
+
+&= \int_{-\infty}^{\infty}\frac{2}{(\beta+1)^2u^2+(\beta-1)^2}\mathrm{d}u\\
+\end{align*}
+$$
+
+The pattern of this integration, some constant over something plus the variable, is very similar to the pattern for trigonometric substitution. And indeed, we can do a trig-substitution here.
+
+Let $a = (\beta+1)$ and $b=(\beta-1)$, then we have:
+
+$$
+\begin{align*}
+\int_{-\infty}^{\infty} \frac{2}{a^2u^2+b^2}\mathrm{d}u
+\end{align*}
+$$
+
+Substitute $u$ with $\frac{b}{a}\tan\theta$, then we can express $\mathrm{d}u$ as:
+
+$$
+\mathrm{d}u = \frac{b}{a}\sec^2\theta\mathrm{d}\theta
+$$
+
+Since we’ve changed the variable of integration, now we will also need to change the bound of integration. Here we have a tricky part, the sign of $a$ and $b$. Recall the definition of $\beta$, which is $\frac{x}{R}$, the position on the diameter line divided by the radius. Since the diameter line is always inside the circle, the absolute value of $x$ is always smaller than $R$, and we can assert that the value we used to substitute $u$, which is $\frac{b}{a}\tan\theta$, is a negative value.
+
+Then we can consider the change of bound; the change of lower bound is formulated as:
+
+$$
+\begin{align*}
+
+\frac{b}{a}\tan\theta&=-\infty\\
+\theta&=\frac{\pi}{2} & (\text{given that} \ \frac{b}{a} < 0)
+
+\end{align*}
+$$
+
+And with the same reason, the upper bound is changed to $\theta=-\frac{\pi}{2}$
+
+Plug the bounds, and we can evaluate the integration:
+
+$$
+\begin{align*}
+&\int_{-\infty}^{\infty} \frac{2}{a^2u^2+b^2}\mathrm{d}u \\
+
+&=\int_{\frac{\pi}{2}}^{-\frac{\pi}{2}} \frac{2}{\cancel{a^2}\frac{b^2}{\cancel{a^2}}\tan^2\theta+b^2}\cdot\frac{{b}}{a}\sec^2\theta \mathrm{d}\theta\\
+
+&= \int_{\frac{\pi}{2}}^{-\frac{\pi}{2}} \frac{2}{b^{\cancel{2}}(\tan^2\theta+1)}\cdot\frac{\cancel{b}}{a}\sec^2\theta\mathrm{d}\theta\\
+
+&= \int_{\frac{\pi}{2}}^{-\frac{\pi}{2}} \frac{2}{b\cancel{\sec^2\theta}}\cdot\frac{1}{a}\cancel{\sec^2\theta}\mathrm{d}\theta & (\sec^2\theta = \tan^2\theta+1)\\
+
+&= \int_{\frac{\pi}{2}}^{-\frac{\pi}{2}} \frac{2\mathrm{d}\theta}{ba} \\
+
+&= -\frac{2\pi}{ba}
+\end{align*}
+$$
+
+Plug back $a = (\beta+1)$ and $b=(\beta-1)$, we have:
+
+$$
+\begin{align*}
+&= -\frac{2\pi}{ba} \\
+&= -\frac{2\pi}{(\beta + 1)(\beta-1)} \\
+&= - \frac{2\pi}{\beta^2-1} = \frac{2\pi}{1-\beta^2}
+\end{align*}
+$$
+
+Going back to the beginning of our integration:
+
+$$
+\pi+\frac{1-\beta^2}{2}\int_0^{2\pi}\frac{1}{\beta^2-2\beta\cos\theta+1}\mathrm{d}\theta
+$$
+
+And put back our result, we have:
+
+$$
+\pi+\frac{\cancel{1-\beta^2}}{2}\cdot\frac{2\pi}{\cancel{1-\beta^2}} = 2\pi
+$$
+
+This is indeed a constant, and we have proven the uniformity of magnetic field inside solenoids through Biot-Savart Law.
+
+Remember that at the start of this part, we ignored some constants out of simplicity, and now is the time to put them back:
+
+$$
+\begin{align*}
+B(x,0)&=2\pi\cdot 2k\lambda_I \\
+&= \cancel{4\pi}\cdot \frac{\mu_0}{\cancel{4\pi}}\lambda_I
+\end{align*}
+$$
+
+If we now consider the general formula to describe the magnetic field:
+
+$$
+B = \frac{\mu_0NI}{L}
+$$
+
+Where $N$ is the number of coils of wire, $I$ is the current going through one single wire, and $L$ is the length of the solenoid. We can find that our result is equivalent to the general formula. Since $NI$ represent the total amount of current, dividing it by the length, we get the linear density of current $\lambda_I$.
