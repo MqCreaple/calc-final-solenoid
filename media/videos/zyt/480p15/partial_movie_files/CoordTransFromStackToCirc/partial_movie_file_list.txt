@@ -1,0 +1,11 @@
+# This file is used internally by FFMPEG.
+file 'file:E:/prog/python/manim/calc-final-solenoid/media/videos/zyt/480p15/partial_movie_files/CoordTransFromStackToCirc/2857445383_3280691701_3223581740.mp4'
+file 'file:E:/prog/python/manim/calc-final-solenoid/media/videos/zyt/480p15/partial_movie_files/CoordTransFromStackToCirc/1099391782_3776593507_527085355.mp4'
+file 'file:E:/prog/python/manim/calc-final-solenoid/media/videos/zyt/480p15/partial_movie_files/CoordTransFromStackToCirc/1099391782_4041561475_1422324005.mp4'
+file 'file:E:/prog/python/manim/calc-final-solenoid/media/videos/zyt/480p15/partial_movie_files/CoordTransFromStackToCirc/1099391782_1329314881_3686317826.mp4'
+file 'file:E:/prog/python/manim/calc-final-solenoid/media/videos/zyt/480p15/partial_movie_files/CoordTransFromStackToCirc/1099391782_3170740959_2036339816.mp4'
+file 'file:E:/prog/python/manim/calc-final-solenoid/media/videos/zyt/480p15/partial_movie_files/CoordTransFromStackToCirc/1099391782_2299789705_2425852764.mp4'
+file 'file:E:/prog/python/manim/calc-final-solenoid/media/videos/zyt/480p15/partial_movie_files/CoordTransFromStackToCirc/1099391782_1329314881_164482077.mp4'
+file 'file:E:/prog/python/manim/calc-final-solenoid/media/videos/zyt/480p15/partial_movie_files/CoordTransFromStackToCirc/1099391782_1979633844_3078777270.mp4'
+file 'file:E:/prog/python/manim/calc-final-solenoid/media/videos/zyt/480p15/partial_movie_files/CoordTransFromStackToCirc/1099391782_311491491_3078777270.mp4'
+file 'file:E:/prog/python/manim/calc-final-solenoid/media/videos/zyt/480p15/partial_movie_files/CoordTransFromStackToCirc/1099391782_4051427837_3078777270.mp4'
