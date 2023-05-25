@@ -94,7 +94,6 @@ class CoordTransFromStackToCirc(ThreeDScene):
         self.play(Transform(to_pt_arrs[2], rvec), run_time=1)
         self.remove(to_pt_arrs[2])
         self.add(rvec)
-        vecr_with_annote = VGroup(rvec, rvec_text)
         self.play(Create(rvec_text), run_time=.5)
 
         # now create a circle with radius 10, and turn the perspective from top view
@@ -107,40 +106,46 @@ class CoordTransFromStackToCirc(ThreeDScene):
         diameter_line = DashedLine(
             start=CIRC_LEFT, end=CIRC_RIGHT, color=MAROON)
         self.play(Create(circ), Create(diameter_line), run_time=1)
-        self.move_camera(phi=0, theta=0, zoom=.4, run_time=1.5)
-
-        # now turn the original stack of wire plus its coordinate, add \vec c and y^\prime
-
         # cvec points from the center of the original coord system to the center of circle
         cvec = Arrow(start=np.array([0, 0, 0]), end=CIRC_CENT, color=GREEN)
         cvec_text = MathTex(r"\vec c").move_to(
-            cvec.get_center() + RIGHT * 1).scale(1.5)
+            cvec.get_center() + UP * .4).scale(1.5)
         cvec_with_annote = VGroup(cvec, cvec_text)
+        
         orig_coord_objs = VGroup(axes, x_label, y_label, z_label, wire_stack_text,
-                                 current_vec_vg_50, current_vec_vg_20, xy_plane, cvec_with_annote)
+                                 current_vec_vg_50, current_vec_vg_20, xy_plane, cvec_with_annote) # objects in the original coordinate system
+        trans_vec = np.array([-1, 0, 0]) # vector of translation
+        trans_vg = VGroup(orig_coord_objs, circ, diameter_line, rvec, rvec_text)
+        trans_vg.generate_target()
+        trans_vg.target.be
+        self.move_camera(phi=0, theta=0, zoom=.4, run_time=1.5)
+
+        # now turn the original stack of wire plus its coordinate, add \vec c and y^\prime
+        
         ROTATW_TOT_TM = 8.0
         ROT_DIVS = 10
         UNIT_TM = ROTATW_TOT_TM / ROT_DIVS
         UNIT_ANG = (2 * PI) / ROT_DIVS
         for ang in np.linspace(PI - UNIT_ANG, -PI, ROT_DIVS):
             orig_coord_rot_anim = Rotate(
-                orig_coord_objs, angle=-UNIT_ANG, about_point=CIRC_CENT, axis=OUT)
+                orig_coord_objs, angle=-UNIT_ANG, about_point=CIRC_CENT, axis=OUT, rate_func=linear)
 
             # change of rvec
             vecto_circum = CIRC_R * np.array([np.cos(ang), np.sin(ang), 0])
-            circum_unit_tan = np.array(
-                [np.sin(ang), np.cos(ang), 0])
             circum_coord = CIRC_CENT + vecto_circum
             print(circum_coord,  vecto_circum)
             new_rvec = Arrow(start=circum_coord,
                              end=init_pt.get_center(), color=BLUE)
             # move the text to the mid point of that rvec
-            new_rtext_pos = CIRC_CENT + vecto_circum / 2 + circum_unit_tan * .2
+            
+            rvec_val = init_pt.get_center() - circum_coord
+            rvec_unit_tan = np.array([-rvec_val[1], rvec_val[0], 0]) / np.linalg.norm(rvec_val)
+            new_rvec_text_pos = circum_coord + (init_pt.get_center() - circum_coord) / 2 + rvec_unit_tan * .3
             rvec.generate_target()
             rvec.target.become(new_rvec)
             rvec_text.generate_target()
-            rvec_text.target.become(rvec_text.copy().move_to(new_rtext_pos))
-            self.play(MoveToTarget(rvec), MoveToTarget(rvec_text),
+            rvec_text.target.become(rvec_text.copy().move_to(new_rvec_text_pos))
+            self.play(MoveToTarget(rvec, rate_fun=linear), MoveToTarget(rvec_text),
                       orig_coord_rot_anim, run_time=UNIT_TM)
-            pass
+        
         self.wait(1)
