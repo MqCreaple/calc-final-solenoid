@@ -79,6 +79,12 @@ class SolenoidSlice(ThreeDScene):
             stroke_color=YELLOW,
         )
 
+    def cross_symbol(self, x: float, z: float, size = 0.2, color: str = WHITE):
+        line1 = Line(start = [x - size, 0, z - size], end = [x + size, 0, z + size], color = color, stroke_width = 15 * size)
+        line2 = Line(start = [x - size, 0, z + size], end = [x + size, 0, z - size], color = color, stroke_width = 15 * size)
+        circle = Circle(radius = size * 1.25, color = color, stroke_width = 15 * size).rotate(90 * DEGREES, axis = RIGHT).shift([x, 0, z])
+        return VGroup(line1, line2, circle)
+
     def construct(self):
         solenoid_radius = 1.5
 
@@ -108,7 +114,6 @@ class SolenoidSlice(ThreeDScene):
         k = 0.5
         label_added = False
         # animation of sum from u = 10 to 30
-        # TODO: continuously move a circle from bottom to top
         magnetic = Vector([0, 0, 0], color = BLUE)
         magnetic_label = self.rotate_to_face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
         k = 1.2
@@ -155,6 +160,7 @@ class SolenoidSlice(ThreeDScene):
         ## script: Let's focus on one small section of the solenoid:
 
         line_pile = []
+        cross_symbol_pile = []
         animations = []
         for v in range(len(surface.v_curves)):
             animations.append(Uncreate(surface.v_curves[v]))
@@ -164,8 +170,24 @@ class SolenoidSlice(ThreeDScene):
             height = surface.get_u_from_index(u)
             segment = Vector([0, 0.2, 0], color=YELLOW).shift([solenoid_radius, -0.1, height])
             line_pile.append(segment)
+            cross_symbol_pile.append(self.cross_symbol(solenoid_radius, height, size = 0.05, color = YELLOW))
             animations.append(Transform(surface.u_curves[u], segment))
         self.play(*animations)
         self.wait(2)
-        self.move_camera(phi=90 * DEGREES, theta=-90 * DEGREES)
+
+        # move camera to face the line pile
+        cam_phi, cam_theta, _, _, _ = self.camera.get_value_trackers()
+        dot_label.generate_target()
+        dot_label.target = MathTex(r'O', color = RED).rotate(PI / 2, axis = RIGHT).next_to(dot, IN)
+        self.play(
+            cam_phi.animate.set_value(90 * DEGREES),
+            cam_theta.animate.set_value(-90 * DEGREES),
+            MoveToTarget(dot_label)
+        )
+
+        animations = []
+        # animation of changing every short line to a cross symbol
+        for i in range(len(line_pile)):
+            animations.append(Transform(line_pile[i], cross_symbol_pile[i]))
+        self.play(*animations)
         self.wait(2)
