@@ -108,41 +108,64 @@ class SolenoidSlice(ThreeDScene):
         k = 0.5
         label_added = False
         # animation of sum from u = 10 to 30
-        for u in range(10, 30):
-            tiny_cylinder = Cylinder(radius=solenoid_radius, height=8 / 40, resolution=[1, 20], show_ends=False).shift([0, 0, surface.get_u_from_index(u)])
-            tiny_cylinder.set_fill(BLUE, opacity = 0.5)
-            self.play(Create(tiny_cylinder, run_time = 0.15))
-            magnetic_new = Vector([0, 0, magnetic.get_vector()[2] + k / (surface.get_u_from_index(u) ** 2 + solenoid_radius ** 2)], color = BLUE)
-            magnetic_label_new = magnetic_label.copy().next_to(magnetic_new, UP)
-            label_animation = Transform(magnetic_label, magnetic_label_new, run_time = 0.15)
-            if not label_added:
-                label_animation = Write(magnetic_label, run_time = 0.15)
-                label_added = True
-            self.play(Transform(magnetic, magnetic_new, run_time = 0.15), label_animation, Uncreate(tiny_cylinder, run_time = 0.15))
+        # TODO: continuously move a circle from bottom to top
+        magnetic = Vector([0, 0, 0], color = BLUE)
+        magnetic_label = self.rotate_to_face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
+        k = 1.2
+        circle = Circle(radius = solenoid_radius, color = BLUE).shift([0, 0, -4])
+        circle.generate_target()
+        circle.target.shift([0, 0, 8])
+        lower_val = k * (-4) / np.sqrt(solenoid_radius ** 2 + 16)
+        upper_val = k * 4 / np.sqrt(solenoid_radius ** 2 + 16)
+        magnetic.generate_target()
+        magnetic.target = Vector([0, 0, upper_val - lower_val], color = BLUE)
+        magnetic_label.generate_target()
+        magnetic_label.target.next_to(magnetic.target, UP)
+        magnetic_rate_func = lambda t: ((k * (t * 8 - 4) / np.sqrt(solenoid_radius ** 2 + (t * 8 - 4) ** 2)) - lower_val) / (upper_val - lower_val)
+        self.play(Create(circle), Write(magnetic_label), Create(magnetic))
         self.wait(1)
-        self.play(Uncreate(magnetic), Unwrite(magnetic_label))
+        self.play(
+            MoveToTarget(circle, rate_func = rate_functions.linear, run_time = 2),
+            MoveToTarget(magnetic, rate_func = magnetic_rate_func, run_time = 2),
+            MoveToTarget(magnetic_label, rate_func = magnetic_rate_func, run_time = 2)
+        )
+        self.wait(2)
+        self.play(Uncreate(circle), Uncreate(magnetic), Uncreate(magnetic_label))
 
         # animation of sum off all v curves
         magnetic = Vector([0, 0, 0], color = BLUE)
         magnetic_label = self.rotate_to_face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
-        k = 0.15
-        label_added = False
-        for v in range(len(surface.v_curves)):
-            next_curve = (v + 1) % len(surface.v_curves)
-            tiny_stripe = ThreeDVMobject()
-            tiny_stripe.set_points_as_corners([
-                surface.v_curves[v].points[0],
-                surface.v_curves[v].points[-1],
-                surface.v_curves[next_curve].points[-1],
-                surface.v_curves[next_curve].points[0],
-            ]).set_fill(BLUE, opacity = 0.5)
-            self.play(Create(tiny_stripe, run_time = 0.15))
-            magnetic_new = Vector([0, 0, magnetic.get_vector()[2] + k], color = BLUE)
-            magnetic_label_new = magnetic_label.copy().next_to(magnetic_new, UP)
-            label_animation = Transform(magnetic_label, magnetic_label_new, run_time = 0.15)
-            if not label_added:
-                label_animation = Write(magnetic_label, run_time = 0.15)
-                label_added = True
-            self.play(Transform(magnetic, magnetic_new, run_time = 0.15), label_animation, Uncreate(tiny_stripe, run_time = 0.15))
+        line = Line(start = [solenoid_radius, 0, -4], end = [solenoid_radius, 0, 4], color = BLUE)
+        magnetic.generate_target()
+        magnetic.target = Vector([0, 0, upper_val - lower_val], color = BLUE)
+        magnetic_label.generate_target()
+        magnetic_label.target.next_to(magnetic.target, UP)
+        self.play(Create(line), Create(magnetic), Write(magnetic_label))
         self.wait(1)
-        self.play(Uncreate(magnetic), Unwrite(magnetic_label))  
+        self.play(
+            Rotate(line, angle = TAU, about_point = ORIGIN, rate_func = rate_functions.linear, run_time = 2),
+            MoveToTarget(magnetic, rate_func = rate_functions.linear, run_time = 2),
+            MoveToTarget(magnetic_label, rate_func = rate_functions.linear, run_time = 2)
+        )
+        self.wait(2)
+        self.play(Uncreate(line), Uncreate(magnetic), Uncreate(magnetic_label))
+        self.wait(5)
+
+        ## script: Well in this case, it turns out that first integrating vertically then integrate the vertical pile of wires around a circle is simpler.
+        ## script: Let's focus on one small section of the solenoid:
+
+        line_pile = []
+        animations = []
+        for v in range(len(surface.v_curves)):
+            animations.append(Uncreate(surface.v_curves[v]))
+        self.play(*animations)
+        animations = []
+        for u in range(len(surface.u_curves)):
+            height = surface.get_u_from_index(u)
+            segment = Vector([0, 0.2, 0], color=YELLOW).shift([solenoid_radius, -0.1, height])
+            line_pile.append(segment)
+            animations.append(Transform(surface.u_curves[u], segment))
+        self.play(*animations)
+        self.wait(2)
+        self.move_camera(phi=90 * DEGREES, theta=-90 * DEGREES)
+        self.wait(2)
