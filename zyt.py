@@ -92,10 +92,12 @@ class CoordTransFromStackToCirc(ThreeDScene):
         non_center_arrs = to_pt_arrs[:2] + to_pt_arrs[3:]
         repl_anims = []
         for arr in non_center_arrs:
-            repl_anims.append(ReplacementTransform(arr, to_pt_arrs[2]))
+            repl_anims.append(Transform(arr, to_pt_arrs[2]))
 
         self.play(*repl_anims, run_time=1.5)
         self.wait(1)
+        for arr in non_center_arrs:
+            self.remove(arr)
 
         rvec_text = MathTex(r"\vec r").move_to(
             to_pt_arrs[2].get_center() + UP * .5).scale(1.5)
@@ -103,7 +105,7 @@ class CoordTransFromStackToCirc(ThreeDScene):
         rvec = Arrow(start=ORIGIN, end=pt_locs[-1], color=BLUE)
         annotated_rvec = VGroup(rvec, rvec_text)
         self.play(ReplacementTransform(to_pt_arrs[2], annotated_rvec), run_time=.5)
-        self.remove(rvec, rvec_text)
+    
 
         # now create a circle with radius 10, and turn the perspective from top view
         CIRC_R = 8
