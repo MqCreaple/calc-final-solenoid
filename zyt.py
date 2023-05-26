@@ -91,9 +91,7 @@ class CoordTransFromStackToCirc(ThreeDScene):
             to_pt_arrs[2].get_center() + UP * .5).scale(1.5)
         # change rvec to a 2d version of arrow
         rvec = Arrow(start=ORIGIN, end=pt_locs[-1], color=BLUE)
-        self.play(Transform(to_pt_arrs[2], rvec), run_time=1)
-        self.remove(to_pt_arrs[2])
-        self.add(rvec)
+        self.play(ReplacementTransform(to_pt_arrs[2], rvec), run_time=1)
         self.play(Create(rvec_text), run_time=.5)
 
         # now create a circle with radius 10, and turn the perspective from top view
@@ -111,41 +109,51 @@ class CoordTransFromStackToCirc(ThreeDScene):
         cvec_text = MathTex(r"\vec c").move_to(
             cvec.get_center() + UP * .4).scale(1.5)
         cvec_with_annote = VGroup(cvec, cvec_text)
-        
+
         orig_coord_objs = VGroup(axes, x_label, y_label, z_label, wire_stack_text,
-                                 current_vec_vg_50, current_vec_vg_20, xy_plane, cvec_with_annote) # objects in the original coordinate system
-        trans_vec = np.array([-1, 0, 0]) # vector of translation
-        trans_vg = VGroup(orig_coord_objs, circ, diameter_line, rvec, rvec_text)
-        trans_vg.generate_target()
-        trans_vg.target.be
-        self.move_camera(phi=0, theta=0, zoom=.4, run_time=1.5)
-
+                                 current_vec_vg_50, current_vec_vg_20, xy_plane, cvec_with_annote)  # objects in the original coordinate system
+        trans_vec = np.array([CIRC_R, 0, 0])  # vector of translation
+        self.move_camera(phi=0, theta=0, zoom=.4,
+                         run_time=2, frame_center=trans_vec)
         # now turn the original stack of wire plus its coordinate, add \vec c and y^\prime
-        
-        ROTATW_TOT_TM = 8.0
-        ROT_DIVS = 10
-        UNIT_TM = ROTATW_TOT_TM / ROT_DIVS
-        UNIT_ANG = (2 * PI) / ROT_DIVS
-        for ang in np.linspace(PI - UNIT_ANG, -PI, ROT_DIVS):
-            orig_coord_rot_anim = Rotate(
-                orig_coord_objs, angle=-UNIT_ANG, about_point=CIRC_CENT, axis=OUT, rate_func=linear)
 
+        ROTATW_TOT_TM = 10.0
+        annotated_rvec = VGroup(rvec, rvec_text)
+        ROT_DEMO_START_ANG = PI
+        ROT_DEMO_END_ANG = -(PI + 35 * DEGREES)
+        ROT_DEMO_ANG_OFFSET = ROT_DEMO_END_ANG - ROT_DEMO_START_ANG
+        def annotated_rvec_updater(mob, alpha, start_ang, end_ang):
+            ang = interpolate(start_ang, end_ang, alpha)
             # change of rvec
+            print(ang)
             vecto_circum = CIRC_R * np.array([np.cos(ang), np.sin(ang), 0])
             circum_coord = CIRC_CENT + vecto_circum
             print(circum_coord,  vecto_circum)
             new_rvec = Arrow(start=circum_coord,
                              end=init_pt.get_center(), color=BLUE)
             # move the text to the mid point of that rvec
-            
+
             rvec_val = init_pt.get_center() - circum_coord
-            rvec_unit_tan = np.array([-rvec_val[1], rvec_val[0], 0]) / np.linalg.norm(rvec_val)
-            new_rvec_text_pos = circum_coord + (init_pt.get_center() - circum_coord) / 2 + rvec_unit_tan * .3
-            rvec.generate_target()
-            rvec.target.become(new_rvec)
-            rvec_text.generate_target()
-            rvec_text.target.become(rvec_text.copy().move_to(new_rvec_text_pos))
-            self.play(MoveToTarget(rvec, rate_fun=linear), MoveToTarget(rvec_text),
-                      orig_coord_rot_anim, run_time=UNIT_TM)
+            rvec_unit_tan = np.array(
+                [-rvec_val[1], rvec_val[0], 0]) / np.linalg.norm(rvec_val)
+            new_rvec_text_pos = circum_coord + \
+                (init_pt.get_center() - circum_coord) / 2 + rvec_unit_tan * .3
+            new_rvec_text = rvec_text.copy().move_to(new_rvec_text_pos)
+            mob.become(VGroup(new_rvec, new_rvec_text))
+
+        orig_coord_rot_anim = Rotate(
+            orig_coord_objs, angle=ROT_DEMO_ANG_OFFSET, about_point=CIRC_CENT, axis=OUT)
+        self.play(orig_coord_rot_anim, UpdateFromAlphaFunc(annotated_rvec,
+                                                           update_function=lambda mob, alpha: annotated_rvec_updater(
+                                                               mob, alpha, ROT_DEMO_START_ANG, ROT_DEMO_END_ANG)),
+                  run_time=ROTATW_TOT_TM, rate_fun=linear)
+        self.wait(1)
+
+        # now let the orig coordinate turn to some position, do a close up and show that y^\prime is related to r dot c
         
+        
+        final_mid_circum_coord = CIRC_R * \
+            np.array([np.cos(ROT_DEMO_END_ANG), np.sin(
+                ROT_DEMO_END_ANG), 0]) / 2 + CIRC_CENT
+        self.move_camera(frame_center=final_mid_circum_coord, zoom=.65, run_time=1)
         self.wait(1)
