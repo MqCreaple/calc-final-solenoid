@@ -1,5 +1,4 @@
 from manim import *
-from manim_physics import *
 import numpy as np
 
 
@@ -7,6 +6,14 @@ class CoordTransFromStackToCirc(ThreeDScene):
     def rotate_to_face_camera(self, *objs: Mobject):
         for obj in objs:
             yield obj.rotate(self.camera.get_phi(), axis=RIGHT).rotate(90 * DEGREES + self.camera.get_theta(), axis=OUT)
+
+    def get_rt_vir_vec(self, vec: np.array):
+        # only for 2D vectos
+        return np.array([-vec[1], vec[0], 0])
+
+    def get_lf_vir_vec(self, vec: np.array):
+        # only for 2D vectos
+        return np.array([vec[1], -vec[0], 0])
 
     def construct(self):
         STACK_HEIGHT = 3.0
@@ -82,17 +89,21 @@ class CoordTransFromStackToCirc(ThreeDScene):
 
         self.wait(1)
         # reduce all the arrows to the center one, and mark it as \vec r
-        for i, arr in enumerate(to_pt_arrs):
-            if i != 2:
-                self.play(FadeOut(arr), run_time=.3)
+        non_center_arrs = to_pt_arrs[:2] + to_pt_arrs[3:]
+        repl_anims = []
+        for arr in non_center_arrs:
+            repl_anims.append(ReplacementTransform(arr, to_pt_arrs[2]))
+
+        self.play(*repl_anims, run_time=1.5)
         self.wait(1)
 
         rvec_text = MathTex(r"\vec r").move_to(
             to_pt_arrs[2].get_center() + UP * .5).scale(1.5)
         # change rvec to a 2d version of arrow
         rvec = Arrow(start=ORIGIN, end=pt_locs[-1], color=BLUE)
-        self.play(ReplacementTransform(to_pt_arrs[2], rvec), run_time=1)
-        self.play(Create(rvec_text), run_time=.5)
+        annotated_rvec = VGroup(rvec, rvec_text)
+        self.play(ReplacementTransform(to_pt_arrs[2], annotated_rvec), run_time=.5)
+        self.remove(rvec, rvec_text)
 
         # now create a circle with radius 10, and turn the perspective from top view
         CIRC_R = 8
@@ -118,10 +129,13 @@ class CoordTransFromStackToCirc(ThreeDScene):
         # now turn the original stack of wire plus its coordinate, add \vec c and y^\prime
 
         ROTATW_TOT_TM = 10.0
-        annotated_rvec = VGroup(rvec, rvec_text)
+
         ROT_DEMO_START_ANG = PI
         ROT_DEMO_END_ANG = -(PI + 35 * DEGREES)
         ROT_DEMO_ANG_OFFSET = ROT_DEMO_END_ANG - ROT_DEMO_START_ANG
+
+        # # remove the original one since there will be update animation
+        # self.play(FadeOut(annotated_rvec))
         def annotated_rvec_updater(mob, alpha, start_ang, end_ang):
             ang = interpolate(start_ang, end_ang, alpha)
             # change of rvec
@@ -134,8 +148,8 @@ class CoordTransFromStackToCirc(ThreeDScene):
             # move the text to the mid point of that rvec
 
             rvec_val = init_pt.get_center() - circum_coord
-            rvec_unit_tan = np.array(
-                [-rvec_val[1], rvec_val[0], 0]) / np.linalg.norm(rvec_val)
+            rvec_unit_tan = self.get_rt_vir_vec(
+                rvec_val) / np.linalg.norm(rvec_val)
             new_rvec_text_pos = circum_coord + \
                 (init_pt.get_center() - circum_coord) / 2 + rvec_unit_tan * .3
             new_rvec_text = rvec_text.copy().move_to(new_rvec_text_pos)
@@ -150,10 +164,37 @@ class CoordTransFromStackToCirc(ThreeDScene):
         self.wait(1)
 
         # now let the orig coordinate turn to some position, do a close up and show that y^\prime is related to r dot c
-        
-        
-        final_mid_circum_coord = CIRC_R * \
+
+        final_cvec_val = CIRC_R * \
             np.array([np.cos(ROT_DEMO_END_ANG), np.sin(
-                ROT_DEMO_END_ANG), 0]) / 2 + CIRC_CENT
-        self.move_camera(frame_center=final_mid_circum_coord, zoom=.65, run_time=1)
+                ROT_DEMO_END_ANG), 0])
+        final_mid_circum_coord = final_cvec_val / 2 + CIRC_CENT
+        final_circum_coord = final_cvec_val + CIRC_CENT
+        final_rvec_val = init_pt.get_center() - final_circum_coord
+        self.move_camera(frame_center=final_mid_circum_coord,
+                         zoom=.65, run_time=1)
+        self.wait(1)
+
+        yprime_mag: float = final_cvec_val.dot(
+            final_rvec_val) / np.linalg.norm(final_cvec_val)
+        yprime_vec_val = final_cvec_val / \
+            np.linalg.norm(final_cvec_val) * yprime_mag
+        # y component (from orig coord sys) of rvec (projected onto cvec)
+        yprime = Arrow(start=final_circum_coord,
+                       end=final_circum_coord + yprime_vec_val, color=RED)
+        yprime_text = MathTex(r"y^\prime").move_to(
+            yprime.get_center() + self.get_rt_vir_vec(yprime_vec_val) * .3).scale(1.5)
+
+        self.play(Create(yprime), Write(yprime_text), run_time=1)
+
+        # connecting the end of yprime to the end of rvec
+        yprime_proj_val = final_rvec_val - yprime_vec_val
+        proj_st = final_circum_coord + yprime_vec_val
+        proj_ed = proj_st + yprime_proj_val
+        yprime_proj = DashedLine(start=proj_st, end=proj_ed, color=TEAL)
+
+        self.play(Create(yprime_proj), run_time=1)
+        yprime_formula_str = r"y^\prime = \frac{\vec c \cdot \vec r}{|\vec c|}"
+        yprime_formula = MathTex(yprime_formula_str).rotate(PI / 2).move_to(yprime_text.get_right() + RIGHT)
+        self.play(Write(yprime_formula), run_time=1)
         self.wait(1)
