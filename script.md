@@ -80,7 +80,6 @@ $$
 }{
     |\vec r|^2
 }}
-
 $$
 
 The $\hat{r}$ here represents the unit vector pointing from some point of the wire to the point of observation. Considering some points on the stack have the coordinate of $(0,0,z)$, then the unit vector to point $(x, y,0)$ on the plane is
@@ -92,7 +91,6 @@ $$
 A unit vector could be expressed as the original vector divided by its length so that we can replace the $\hat r$ with $\frac{\vec r}{|\vec{r}|}$. And the equation is now like this:
 
 $$
-
 \vec B{(x,y,0)}=k\lambda_I\int_{-\infty}^\infty {\frac{
      \begin{bmatrix}
         1\\0\\0
@@ -100,20 +98,17 @@ $$
 }{
     |\vec r|^3
 }}
-
 $$
 
 Now, plug in the expression of $\vec r$, and expand the expression for distance of $|\vec r|$, we have:
 
 $$
-
 \vec B{(x,y,0)}=k\lambda_I\int_{-\infty}^\infty {\frac{
      \begin{bmatrix}
         1\\0\\0\end{bmatrix}\times\begin{bmatrix}x\\y\\-z\end{bmatrix}\mathrm{d}l\mathrm{d}z
 }{
     (\sqrt{x^2 + y^2 + z^2})^3
 }}
-
 $$
 
 Observe this cross-product here; the generated magnetic field is perpendicular to the direction for currents to flow, which fits the previous explanation of the Biot-Savart Law.
@@ -128,13 +123,11 @@ $$
 From this expression, we can see that there is no magnetic field in $x$ directions. And now we have:
 
 $$
-
 \vec B{(x,y,0)}=k\lambda_I\oint_{-\infty}^\infty {\frac{
      \begin{bmatrix}0\\z\\y\end{bmatrix}\mathrm{d}l\mathrm{d}z
 }{
     (x^2 + y^2 + z^2)^\frac{3}{2}
 }}
-
 $$
 
  Since the output of this integration $\vec B (x, y, 0)$, we can evaluate it from different components. We can first find the magnetic field at $y$ direction:
@@ -145,7 +138,6 @@ B_j(x, y, 0) =k\lambda_I\oint_{-\infty}^\infty {\frac{
 }{
     (x^2 + y^2 + z^2)^\frac{3}{2}
 }}
-
 $$
 
 The expression seems very complicated. However, we can see that our variable of integration is $z$, and any variables other than $z$ can be considered constant. For example, we can replace $x^2 + y^2$ with $\alpha^2$, and we have:
@@ -156,7 +148,6 @@ B_j(x, y, 0) =k\lambda_I\oint_{-\infty}^\infty {\frac{
 }{
     (\alpha^2 + z^2)^\frac{3}{2}
 }}
-
 $$
 
 Although it seems hard to directly evaluate this integral, the pattern of $\alpha^2 + z^2$ reminds us about trig-substitution. In this integral, we can substitute our variable of integration, $z$, to $\alpha\tan\theta$, since the identity of $1+\tan^2\theta = \sec^2\theta$ could be helpful here. Since we changed our variable of integration from $z$ to $\theta$, we will have to find the relationship between $\mathrm{d}z$ and $\mathrm{d}\theta$:
@@ -184,28 +175,23 @@ $$
 
 \begin{align*}B_j(x, y, 0)
 &=k\lambda_I\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{ \alpha^2\tan\theta (\sec^2\theta\mathrm{d}\theta) \mathrm{d}l }{ [\alpha^2(1 + 1\tan^2\theta)]^\frac{3}{2} }}\\
-
 &=\frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{ \tan\theta (\sec^2\theta\mathrm{d}\theta) \mathrm{d}l }{ (1 + \tan^2\theta)^\frac{3}{2} }} \end{align*}
-
 $$
 
 Using the trig identity mentioned previously, we have:
 
 $$
 \begin{align*}B_j(x, y, 0)
-
 &=\frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{
      \tan\theta (\sec^2\theta\mathrm{d}\theta) \mathrm{d}l
 }{
     (\sec^2\theta)^\frac{3}{2}
 }}\\
-
 &=\frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{
      \tan\theta (\sec^2\theta\mathrm{d}\theta) \mathrm{d}l
 }{
     \sec^3\theta
 }} \\
-
 &= \frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{
      \tan\theta \mathrm{d}\theta \mathrm{d}l
 }{
@@ -217,13 +203,9 @@ Express $\tan\theta$ and $\sec\theta$ in the form of sin and cos, and we have:
 
 $$
 \begin{align*}B_j(x, y, 0)
-
 &= \frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\left(\frac{\sin\theta}{\cos\theta}\right)\cdot\cos\theta\mathrm{d}\theta\mathrm{d}l}\\
-
 &= \frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\sin\theta\mathrm{d}\theta\mathrm{d}l}\\
-
 &= \frac{k\lambda_I}{\alpha}\cos\theta\Big\rvert_{-\frac{\pi}{2}}^{\frac{\pi}{2}}\mathrm{d}l\\
-
 &=0
 \end{align*}
 $$
