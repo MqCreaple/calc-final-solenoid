@@ -1,19 +1,25 @@
 from manim import *
+from helper import *
 import numpy as np
+import sys
+sys.path.append(".\\manim-physics\\")
+from manim_physics import *
+
+
+def get_rt_vir_vec(vec: np.array):
+    # only for 2D vectos
+    return np.array([-vec[1], vec[0], 0])
+
+
+def get_lf_vir_vec(vec: np.array):
+    # only for 2D vectos
+    return np.array([vec[1], -vec[0], 0])
 
 
 class CoordTransFromStackToCirc(ThreeDScene):
     def rotate_to_face_camera(self, *objs: Mobject):
         for obj in objs:
             yield obj.rotate(self.camera.get_phi(), axis=RIGHT).rotate(90 * DEGREES + self.camera.get_theta(), axis=OUT)
-
-    def get_rt_vir_vec(self, vec: np.array):
-        # only for 2D vectos
-        return np.array([-vec[1], vec[0], 0])
-
-    def get_lf_vir_vec(self, vec: np.array):
-        # only for 2D vectos
-        return np.array([vec[1], -vec[0], 0])
 
     def construct(self):
         STACK_HEIGHT = 3.0
@@ -104,8 +110,8 @@ class CoordTransFromStackToCirc(ThreeDScene):
         # change rvec to a 2d version of arrow
         rvec = Arrow(start=ORIGIN, end=pt_locs[-1], color=BLUE)
         annotated_rvec = VGroup(rvec, rvec_text)
-        self.play(ReplacementTransform(to_pt_arrs[2], annotated_rvec), run_time=.5)
-    
+        self.play(ReplacementTransform(
+            to_pt_arrs[2], annotated_rvec), run_time=.5)
 
         # now create a circle with radius 10, and turn the perspective from top view
         CIRC_R = 8
@@ -150,7 +156,7 @@ class CoordTransFromStackToCirc(ThreeDScene):
             # move the text to the mid point of that rvec
 
             rvec_val = init_pt.get_center() - circum_coord
-            rvec_unit_tan = self.get_rt_vir_vec(
+            rvec_unit_tan = get_rt_vir_vec(
                 rvec_val) / np.linalg.norm(rvec_val)
             new_rvec_text_pos = circum_coord + \
                 (init_pt.get_center() - circum_coord) / 2 + rvec_unit_tan * .3
@@ -197,6 +203,201 @@ class CoordTransFromStackToCirc(ThreeDScene):
 
         self.play(Create(yprime_proj), run_time=1)
         yprime_formula_str = r"y^\prime = \frac{\vec c \cdot \vec r}{|\vec c|}"
-        yprime_formula = MathTex(yprime_formula_str).rotate(PI / 2).move_to(yprime_text.get_right() + RIGHT)
+        yprime_formula = MathTex(yprime_formula_str).rotate(
+            PI / 2).move_to(yprime_text.get_right() + RIGHT)
         self.play(Write(yprime_formula), run_time=1)
+        self.wait(1)
+
+
+class InfLineAmpLaw(ThreeDScene):
+    def ampere_infline_int(self, alpha: float, current: float) -> float:
+        # the integrand of the ampere loop law when integrating over an infinite long straight line
+        MU_0 = 4 * PI * 1e-7
+        return current * alpha
+
+    def construct(self):
+        HEI = self.camera.frame_height
+        WID = self.camera.frame_width
+        # let the wire pass through the screen, into it
+        line_start = np.array([0, 0, -10])
+        line_end = np.array([0, 0, 10])
+        xrg = [-WID / 2, WID / 2, .5]
+        yrg = [-HEI / 2, HEI / 2, .5]
+
+        # introduce the ampere loop law
+        wire_line = Line(start=line_start, end=line_end)
+        # first draw the wire that going out of the screen
+        self.set_camera_orientation(phi=60 * DEGREES, theta=45 * DEGREES)
+        self.play(Create(wire_line), run_time=1)
+
+        # draw some dots to indicate the flow of current
+        DOT_CNT = 15
+        DOT_TRAVEL_MAX_TM = 4  # seconds
+        electron_dots = []
+        for i in range(DOT_CNT):
+            electron_dots.append(Dot3D(wire_line.get_start(), color=BLUE))
+        electron_moving_anim = LaggedStart(
+            *[MoveAlongPath(electron_dots[i], wire_line)
+              for i in range(DOT_CNT)],
+            lag_ratio=(1/DOT_CNT), run_time=DOT_TRAVEL_MAX_TM
+        )
+
+        wire = Wire(wire_line, current=2)
+        mag_field = MagneticField(wire, x_range=xrg, y_range=yrg)
+        sxrg = xrg.copy(); sxrg[-1] = .3
+        syrg = yrg.copy(); syrg[-1] = .3
+        mag_streamlines = StreamLines(func = mag_field.func, x_range=sxrg, y_range=syrg, opacity=.5)
+        mag_f_create_anim = AnimationGroup(SpinInFromNothing(mag_field), SpinInFromNothing(mag_streamlines))
+        self.play(
+            LaggedStart(
+                electron_moving_anim,
+                mag_f_create_anim,
+                lag_ratio=.3,
+            )
+        )
+        self.wait(1)
+        # now change the perspective to show how to use ampere loop law
+        self.remove(*electron_dots)
+        self.move_camera(phi=0 * DEGREES, theta=-90 * DEGREES, run_time=1)
+        current_out_sign = current_out_symbol(
+            wire_line.get_center(), 0.2, color=WHITE)
+        current_amount = MathTex(r"I = 2\text{A}", color=WHITE).next_to(
+            current_out_sign, RIGHT)
+        self.play(Create(current_out_sign), Write(current_amount), run_time=1)
+
+        # put an amperian loop around the wire
+        LOOP_RAD = 3
+        ampere_law_text = MathTex(
+            r"\oint \vec B\cdot", r"\mathrm d\vec l", r" = \mu_0I_{\text{enclosed}}", color=WHITE)
+        ampere_law_text.to_corner(UL)
+        ampere_law_text.set_color_by_tex(r"\mathrm d\vec l", BLUE)
+        amp_loop = Circle(radius=LOOP_RAD, color=RED).move_to(
+            wire_line.get_center())
+        self.play(Create(amp_loop), run_time=1)
+        self.play(Write(ampere_law_text), run_time=1)
+        circ_seg_d_ang = DEGREES * 5
+        circ_seg = Arc(radius=LOOP_RAD, start_angle=0, angle=circ_seg_d_ang, color=BLUE,
+                       stroke_width=4).move_arc_center_to(amp_loop.get_center()).shift(OUT * 0.01)
+        # use as dl
+        integration_val = MathTex(
+            r"\frac{\oint \vec B \cdot \mathrm d\vec l}{\mu_0} = 0").to_corner(UR)
+
+        def inte_upd(mob: Text, alpha: float) -> None:
+            nex_txt = r"\frac{\oint \vec B \cdot \mathrm d\vec l}{\mu_0}" + \
+                "={:.2f}".format(self.ampere_infline_int(alpha, wire.current))
+            mob.become(MathTex(nex_txt).to_corner(UR))
+
+        integration_anim = UpdateFromAlphaFunc(
+            integration_val, update_function=inte_upd)
+
+        move_along_circ_anim = Rotate(
+            circ_seg, angle=2 * PI - circ_seg_d_ang, about_point=amp_loop.get_center())
+        self.play(Create(circ_seg), Write(integration_val), run_time=1)
+        # self.play(integration_anim)
+        self.play(move_along_circ_anim, integration_anim, run_time=4)
+        self.wait(1)
+
+        LOOP_RAD = 2
+        self.play(
+            integration_val.animate.become(MathTex(
+            r"\frac{\oint \vec B \cdot \mathrm d\vec l}{\mu_0} = 0").to_corner(UR)),
+            
+            circ_seg.animate.become(Arc(radius=LOOP_RAD, start_angle=0, angle=circ_seg_d_ang, color=BLUE,
+                                    stroke_width=4).move_arc_center_to(amp_loop.get_center()).shift(OUT * 0.01)),
+            
+            amp_loop.animate.become(Circle(radius=LOOP_RAD, color=RED).move_to(wire_line.get_center())),
+            
+            run_time=1.5)
+        self.wait(1)
+        self.play(move_along_circ_anim, integration_anim, run_time=4)
+        self.wait(1)
+        
+class SolenoidAmpLaw(ThreeDScene):
+    def construct(self):
+        WID = self.camera.frame_width
+        HEI = self.camera.frame_height
+        cam_trackers = {
+            "phi": self.camera.phi_tracker,
+            "theta": self.camera.theta_tracker,            
+        }
+        dbg_axis = ThreeDAxes()
+        self.add(dbg_axis)
+        xlabel = dbg_axis.get_x_axis_label("x")
+        ylabel = dbg_axis.get_y_axis_label("y")
+        zlabel = dbg_axis.get_z_axis_label("z")
+        self.add(xlabel, ylabel, zlabel)
+        
+        self.set_camera_orientation(phi=60 * DEGREES, theta=45 * DEGREES)
+        # generate solenoid
+        SOL_COIL = 20
+        solenoid = Solenoid(2, 10, SOL_COIL, color=WHITE)
+        inouts = solenoid.get_inout_symbols(.2, PI/2, False, color=WHITE) 
+        # rotate the solenoid so that it will be horizontal
+        sol_with_sign = VGroup(solenoid, inouts).rotate(90*DEGREES, axis=UP)
+        
+        sol_wire = Wire(solenoid, current=2)
+        self.play(Create(solenoid))
+        
+        DOT_CNT = 25
+        DOT_TRAVEL_MAX_TM = 6  # seconds
+        electron_dots = [Dot3D(solenoid.get_start(), color=BLUE) for _ in range(DOT_CNT)]
+        electron_moving_anim = LaggedStart(
+            *[MoveAlongPath(electron_dots[i], solenoid) for i in range(DOT_CNT)],
+            lag_ratio=(1/DOT_CNT), run_time=DOT_TRAVEL_MAX_TM
+        )
+        
+        # create magnetic field and streamline in the cross section of the solenoid
+        cam_perspective_change_anim  = AnimationGroup(
+            cam_trackers["phi"].animate.set_value(0),
+            cam_trackers["theta"].animate.set_value(-90 * DEGREES),
+        )
+        xrg = [-WID/2, WID/2, .5]; sxrg = [-WID/2, WID/2, .3]
+        yrg = [-HEI/2, HEI/2, .5]; syrg = [-HEI/2, HEI/2, .3]   
+        mag_field = MagneticField(sol_wire, x_range=xrg, y_range=yrg)
+        mag_streamline = StreamLines(func=mag_field.func, x_range=sxrg, y_range=syrg, opacity=.5)
+        field_gen_anim = AnimationGroup(
+            SpinInFromNothing(mag_field), SpinInFromNothing(mag_streamline), run_time=2
+        )
+        
+        show_sign_anim = AnimationGroup(FadeOut(solenoid), FadeOut(*electron_dots),
+            FadeIn(inouts))
+
+        self.play(
+                LaggedStart(
+                electron_moving_anim,
+                cam_perspective_change_anim,
+                field_gen_anim,
+                show_sign_anim,
+                lag_ratio=.25
+                ))
+    
+
+class SolenoidInOutTest(ThreeDScene):
+    def construct(self):
+        axes = ThreeDAxes()
+        xl, yl, zl = axes.get_axis_labels(), axes.get_y_axis_label("y"), axes.get_z_axis_label("z")
+        self.add(axes, xl, yl, zl)
+        self.set_camera_orientation(phi=60 * DEGREES, theta=45 * DEGREES)
+        self.move_camera(zoom=.6)
+        solenoid = Solenoid(2, 10, 20, color=WHITE) 
+        self.play(Create(solenoid))
+        self.wait(1)
+        inouts = solenoid.get_inout_symbols(.2, PI/2, False, color=WHITE)
+        sol_with_sign = VGroup(solenoid, inouts)
+        self.play(
+            FadeIn(inouts)
+        )
+        self.wait(1)
+        self.play(
+            sol_with_sign.animate.rotate(90*DEGREES, axis=UP),
+            run_time=2
+        )
+        self.wait(1)
+
+class BugTest(ThreeDScene):
+    def construct(self):
+        field = ArrowVectorField(lambda p: np.array(
+            [0, 0, 1.0]), x_range=[-4, 4], y_range=[-4, 4])
+        self.set_camera_orientation(phi=60 * DEGREES, theta=45 * DEGREES)
+        self.play(SpiralIn(field), run_time=2)
         self.wait(1)

@@ -49,3 +49,65 @@ class MySurface(VMobject):
 
     def get_v_from_index(self, v: float):
         return np.interp(v, [0, self.resolution[1]], self.v_range)
+
+def solenoid_wire(radius, zlen, coil_cnt, **kwargs):
+    coil_height = zlen / coil_cnt
+    return ParametricFunction(
+        lambda t: np.array([
+            radius * np.cos(2 * PI * t),
+            radius * np.sin(2 * PI * t),
+            t * coil_height
+        ]),
+        t_range=[-coil_cnt / 2, coil_cnt / 2],
+        **kwargs
+    )
+
+class Solenoid(ParametricFunction):
+    def __init__(self, radius, zlen, coil_cnt, **kwargs):
+        self.radius = radius
+        self.zlen = zlen
+        self.coil_cnt = coil_cnt
+        self.coil_height = zlen / coil_cnt
+        super().__init__(
+            lambda t: np.array([
+                radius * np.cos(2 * PI * t),
+                radius * np.sin(2 * PI * t),
+                t * self.coil_height
+            ]),
+            t_range=[-coil_cnt / 2, coil_cnt / 2],
+            **kwargs
+        )
+    # get the points on the cross-section plane, that the solenoid wire passes through it
+    def get_pts_pass_out_plane(self, angle : float) -> Sequence[np.ndarray]:
+        # if angle=0, the wire when t=0 will pass through the plane
+        angle = angle % (2 * PI)
+        t = angle / (2 * PI) - self.coil_cnt / 2
+        return [self.function(t + n) for n in range(0, self.coil_cnt)]
+    def get_pts_pass_in_plane(self, angle : float) -> Sequence[np.ndarray]:
+        angle = angle % (2 * PI)
+        t = angle / (2 * PI) - self.coil_cnt / 2
+        return [self.function(t + n + 0.5) for n in range(0, self.coil_cnt)]
+    def get_inout_symbols(self, radius : float, ang : float, reverse : bool, **kwargs) -> VGroup:
+        in_poses = self.get_pts_pass_in_plane(0)
+        out_poses = self.get_pts_pass_out_plane(0)
+        if reverse:
+            in_poses, out_poses = out_poses, in_poses
+        in_symbols = VGroup(*[current_in_symbol(pos, radius, **kwargs).rotate(PI/2, RIGHT) for pos in in_poses])
+        out_symbols = VGroup(*[current_out_symbol(pos, radius, **kwargs).rotate(PI/2, RIGHT) for pos in out_poses])
+        ret = VGroup(in_symbols, out_symbols)
+        shift_val = ang / (2 * PI) * self.coil_height
+        ret.rotate(ang, OUT).shift(np.array([0,0,shift_val]))
+        return ret
+def current_in_symbol(cent: np.array, radius: float, **kwargs) -> VGroup:
+        circ = Circle(radius, **kwargs).move_to(cent)
+        # draw the cross symbol
+        line1 = Line(start=circ.get_left(), end=circ.get_right(), **kwargs)
+        line2 = Line(start=circ.get_top(), end=circ.get_bottom(), **kwargs)
+        cross = VGroup(line1, line2).rotate(PI/4, OUT)
+        return VGroup(circ, cross)
+
+def current_out_symbol(cent: np.array, radius: float, **kwargs) -> VGroup:
+        circ = Circle(radius, **kwargs).move_to(cent)
+        # draw the dot symbol
+        dot = Dot(circ.get_center(), **kwargs)
+        return VGroup(circ, dot)
