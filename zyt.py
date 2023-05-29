@@ -302,19 +302,18 @@ class InfLineAmpLaw(ThreeDScene):
         self.wait(1)
 
         LOOP_RAD = 2
-        zero_int_tex = MathTex(
-                r"\frac{\oint \vec B \cdot \mathrm d\vec l}{\mu_0} = 0").to_corner(UR)
+        def to_zero_updter(mob : Mobject, alpha : float) -> None:
+            mob.become(MathTex(r"\frac{\oint \vec B \cdot \mathrm d\vec l}{\mu_0} = 0.00").to_corner(UR))
+        
         self.play(
-            TransformMatchingTex(
-            integration_val, zero_int_tex),
+            UpdateFromAlphaFunc(integration_val, to_zero_updter),
             circ_seg.animate.become(Arc(radius=LOOP_RAD, start_angle=0, angle=circ_seg_d_ang, color=BLUE,
                                     stroke_width=4).move_arc_center_to(amp_loop.get_center()).shift(OUT * 0.01)),
             amp_loop.animate.become(
                 Circle(radius=LOOP_RAD, color=RED).move_to(wire_line.get_center())),
             run_time=1.5)
 
-    
-        integration_val.become(zero_int_tex)
+        
         self.wait(1)
         self.play(move_along_circ_anim, integration_anim, run_time=4)
         self.wait(1)
