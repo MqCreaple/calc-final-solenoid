@@ -340,7 +340,7 @@ class IntegrateSlice(Scene):
         self.play(Uncreate(magnetic_z), Uncreate(magnetic_z_label), MoveToTarget(r_vec_label))
         self.wait(3)
 
-        ## script: Remember: the radius of the solenoid is $\alpha$ and the vertical distance is $z$.
+        ## script: Remember: the rdistance from wire pile to the observation point $\alpha$ and the vertical distance is $z$.
         alpha_brace = BraceBetweenPoints([0, 0, 0], [solenoid_radius, 0, 0], DOWN)
         alpha_brace_label = MathTex(r'\alpha').next_to(alpha_brace, DOWN)
         self.play(Create(alpha_brace), Write(alpha_brace_label))
@@ -355,4 +355,64 @@ class IntegrateSlice(Scene):
         cos_equation = MathTex(r'\cos\theta', r' = \frac{\alpha}{\sqrt{\alpha^2 + z^2}}').next_to(r_equation, DOWN)
         self.play(Write(r_equation))
         self.play(Write(cos_equation))
+        self.wait(3)
+        formula = MathTex(
+            r'\mathrm dB_z',
+            r' = \frac{\mu_0}{4\pi}\frac{\lambda_I\frac{\alpha}{\sqrt{\alpha^2+z^2}}}{\alpha^2+z^2}\mathrm dz\mathrm dl',
+        ).to_corner(UL)
+        formula[0].set_color(BLUE)
+        self.play(
+            ReplacementTransform(VGroup(biot_savart_target, r_equation, cos_equation), formula),
+            Uncreate(angle), Unwrite(angle_label),
+        )
         self.wait(2)
+        formula.generate_target()
+        formula.target = MathTex(
+            r'\mathrm dB_z',
+            r'=', r'\frac{\mu_0}{4\pi}\frac{\lambda_I\alpha}{(\alpha^2+z^2)^{\frac 32}}',
+            r'\mathrm dz', r'\mathrm dl'
+        ).to_corner(UL)
+        formula.target[0].set_color(BLUE)
+        self.play(MoveToTarget(formula))
+        self.wait(4)
+        self.play(
+            Uncreate(alpha_brace), Unwrite(alpha_brace_label),
+            Uncreate(z_brace), Unwrite(z_brace_label),
+            Uncreate(r_vec), Uncreate(r_vec_label),
+            Uncreate(observe_point), Unwrite(observe_point_label),
+            *[Uncreate(symbol) for symbol in cross_symbol_pile],
+            Uncreate(axes), Uncreate(axes_labels),
+        )
+        formula.generate_target()
+        formula.target.move_to([0, 0, 0])
+        self.play(MoveToTarget(formula))
+        self.wait(2)
+
+        ## script: Now let's rewrite it in integral form:
+        formula_target = MathTex(
+            r'B_z', r'=',
+            r'\oint_{\text{circle}}',
+            r'\int_{-\infty}^{+\infty}',
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I\alpha}{(\alpha^2+z^2)^{\frac 32}}',
+            r'\mathrm dz', r'\mathrm dl',
+        )
+        formula_target[0].set_color(BLUE)
+        formula_target[2].set_color(YELLOW)
+        formula_target[3].set_color(RED)
+        formula_target[5].set_color(RED)
+        formula_target[6].set_color(YELLOW)
+        self.play(TransformMatchingShapes(formula, formula_target))
+        formula = formula_target
+        self.wait(2)
+
+        ## script: Now, let's integrate the vertical component first.
+        formula.generate_target()
+        formula.target = MathTex(
+            r'\int_{-\infty}^{+\infty}',
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I\alpha}{(\alpha^2+z^2)^{\frac 32}}',
+            r'\mathrm dz'
+        )
+        formula[0].set_color(RED)
+        formula[2].set_color(RED)
+        self.play(MoveToTarget(formula))
+        self.wait(3)

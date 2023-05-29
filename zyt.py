@@ -191,7 +191,7 @@ class CoordTransFromStackToCirc(ThreeDScene):
         yprime = Arrow(start=final_circum_coord,
                        end=final_circum_coord + yprime_vec_val, color=RED)
         yprime_text = MathTex(r"y^\prime").move_to(
-            yprime.get_center() + self.get_rt_vir_vec(yprime_vec_val) * .3).scale(1.5)
+            yprime.get_center() + get_rt_vir_vec(yprime_vec_val) * .3).scale(1.5)
 
         self.play(Create(yprime), Write(yprime_text), run_time=1)
 
