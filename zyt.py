@@ -302,17 +302,19 @@ class InfLineAmpLaw(ThreeDScene):
         self.wait(1)
 
         LOOP_RAD = 2
+        zero_int_tex = MathTex(
+                r"\frac{\oint \vec B \cdot \mathrm d\vec l}{\mu_0} = 0").to_corner(UR)
         self.play(
-            integration_val.animate.become(MathTex(
-                r"\frac{\oint \vec B \cdot \mathrm d\vec l}{\mu_0} = 0").to_corner(UR)),
-
+            TransformMatchingTex(
+            integration_val, zero_int_tex),
             circ_seg.animate.become(Arc(radius=LOOP_RAD, start_angle=0, angle=circ_seg_d_ang, color=BLUE,
                                     stroke_width=4).move_arc_center_to(amp_loop.get_center()).shift(OUT * 0.01)),
-
             amp_loop.animate.become(
                 Circle(radius=LOOP_RAD, color=RED).move_to(wire_line.get_center())),
-
             run_time=1.5)
+
+    
+        integration_val.become(zero_int_tex)
         self.wait(1)
         self.play(move_along_circ_anim, integration_anim, run_time=4)
         self.wait(1)
@@ -444,9 +446,9 @@ class SolenoidAmpLaw(ThreeDScene):
                 rt_int_text.animate.next_to(rt_int_segment, RIGHT, buff=.15))
         lfrt_final_text_str = lf_int_text.get_tex_string() + " = "+ rt_int_text.get_tex_string() + " = 0"
         lfrt_final_text = MathTex(
-            lfrt_final_text_str).scale(.6).next_to(cur_inc_0_txt, DOWN, buff=.15).shift(LEFT * .5)
+            lfrt_final_text_str).scale(.6).next_to(cur_inc_0_txt, DOWN, buff=.15).shift(LEFT)
         # add zero to the left and right line integral
-        self.play(Transform(
+        self.play(TransformMatchingTex(
             VGroup(lf_int_text, rt_int_text), lfrt_final_text
         ))
         self.remove(lf_int_segment, rt_int_segment)
@@ -483,6 +485,57 @@ class SolenoidAmpLaw(ThreeDScene):
         dn_int_text.remove(dn_intseg_updater)
         self.wait(1)
         
+        self.play(Indicate(cur_inc_0_txt), Indicate(lfrt_final_text))
+        updn_final_text = MathTex(
+            up_int_text.get_tex_string() + " + " + dn_int_text.get_tex_string() + " = 0"
+        ).scale(.6).next_to(lfrt_final_text, DOWN, buff=.5)
+        self.play(TransformMatchingTex(
+            VGroup(up_int_text, dn_int_text), updn_final_text
+        ))
+        self.wait(1)
+        
+        # show that we can move the amp_rect around to proove the uniformity of the mag field inside the solenoid
+        # first try to move the bottom of the amp_rect
+        self.play(amp_rect.animate.stretch_to_fit_height(amp_rect.height / 2, about_edge=UP))
+        self.wait(1)
+        self.play(amp_rect.animate.shift(DOWN * amp_rect.height).scale(.5))
+        # let the rectangle move in eliptical path to show that the magnetic field is uniform everywhere inside the solenoid
+        eliptical_path = Ellipse(width = solenoid.zlen * .7, height = solenoid.radius * 2 * .7)
+        self.play(amp_rect.animate, amp_rect.animate.move_to(eliptical_path.get_start()))
+        self.play(MoveAlongPath(amp_rect, eliptical_path), run_time=4)
+        self.wait(1)
+        
+        # go back to the original perspective and show the solenoid again
+        cam_perspective_change_anim = AnimationGroup(
+            cam_trackers["phi"].animate.set_value(60 * DEGREES),
+            cam_trackers["theta"].animate.set_value((45 + 180)* DEGREES),
+            run_time=5
+        )
+        
+        sol_create = Create(solenoid)
+        
+        twoDscenes_fadeout_anims = AnimationGroup(
+            FadeOut(amp_rect),
+            FadeOut(updn_final_text),
+            FadeOut(lfrt_final_text),
+            FadeOut(cur_inc_0_txt),
+            FadeOut(inouts),
+            run_time=2,
+            lag_ratio=.05
+        )
+        
+        self.play(
+            AnimationGroup(
+                cam_perspective_change_anim,
+                twoDscenes_fadeout_anims,
+                sol_create,
+                electron_moving_anim,
+                lag_ratio=.25
+            )
+        )
+        self.remove(*electron_dots)
+        self.wait(1)
+
         
 class SolenoidInOutTest(ThreeDScene):
     def construct(self):
@@ -505,6 +558,13 @@ class SolenoidInOutTest(ThreeDScene):
             sol_with_sign.animate.rotate(90*DEGREES, axis=UP),
             run_time=2
         )
+        self.wait(1)
+
+class RectTest(Scene):
+    def construct(self):
+        rect = Rectangle(height=2, width=4, color=WHITE)
+        self.play(Create(rect))
+        self.play(rect.animate.stretch_to_fit_height(4, about_edge=DOWN))
         self.wait(1)
 
 class ArrowCircleTest(Scene):
