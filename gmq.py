@@ -397,22 +397,70 @@ class IntegrateSlice(Scene):
             r'\mathrm dz', r'\mathrm dl',
         )
         formula_target[0].set_color(BLUE)
-        formula_target[2].set_color(YELLOW)
-        formula_target[3].set_color(RED)
-        formula_target[5].set_color(RED)
-        formula_target[6].set_color(YELLOW)
+        formula_target[2].set_color(ORANGE)
+        formula_target[3].set_color(YELLOW)
+        formula_target[5].set_color(YELLOW)
+        formula_target[6].set_color(ORANGE)
         self.play(TransformMatchingShapes(formula, formula_target))
         formula = formula_target
         self.wait(2)
 
         ## script: Now, let's integrate the vertical component first.
-        formula.generate_target()
-        formula.target = MathTex(
+        formula_target = MathTex(
             r'\int_{-\infty}^{+\infty}',
             r'\frac{\mu_0}{4\pi}\frac{\lambda_I\alpha}{(\alpha^2+z^2)^{\frac 32}}',
             r'\mathrm dz'
         )
-        formula[0].set_color(RED)
-        formula[2].set_color(RED)
-        self.play(MoveToTarget(formula))
+        formula_target[0].set_color(YELLOW)
+        formula_target[2].set_color(YELLOW)
+        self.play(TransformMatchingTex(formula, formula_target))
+        formula = formula_target
+        self.wait(4)
+
+        ## script: To solve this, first pull out all the constants:
+        formula_target = MathTex(
+            r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
+            r'\int_{-\infty}^{+\infty}',
+            r'\frac{1}{(\alpha^2+z^2)^{\frac 32}}',
+            r'\mathrm dz'
+        )
+        formula_target[1].set_color(YELLOW)
+        formula_target[3].set_color(YELLOW)
+        self.play(TransformMatchingTex(formula, formula_target))
+        formula = formula_target
         self.wait(3)
+
+        ## script: Note that the core of this integral is the $(\alpha^2 + z^2)^{3/2}$ piece:
+        self.play(FocusOn(formula_target[2]))
+        self.wait(5)
+
+        ## script: Since $z$ is the integral variable and $\alpha$ is a constant, we can use a trig substitution
+        ## script: for expression of the form $\alpha^2 + z^2$.
+        z_sub = MathTex(r'z', r'=', r'\alpha\tan\theta').next_to(formula, DOWN)
+        self.play(Write(z_sub))
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
+            r'\int_{-\infty}^{+\infty}',
+            r'\frac 1{[\alpha^2(1 + \tan^2\theta)]^{\frac 32}}',
+            r'\mathrm d(\alpha\tan\theta)'
+        )
+        formula_target[1].set_color(YELLOW)
+        formula_target[3].set_color(YELLOW)
+        self.play(TransformMatchingTex(formula, formula_target), Unwrite(z_sub))
+        formula = formula_target
+        self.wait(3)
+
+        ## script: Now simplify the expression. Remember to change the bound of integration.
+        formula_target = MathTex(
+            r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
+            r'\int_{-\frac\pi 2}^{+\frac\pi 2}',
+            r'\frac{\alpha\sec^2\theta}{(\alpha^2\sec^2\theta)^{\frac 32}}}',
+            r'\mathrm d\theta',
+        )
+        formula_target[1].set_color(YELLOW)
+        formula_target[3].set_color(YELLOW)
+        self.play(TransformMatchingTex(formula, formula_target))
+        formula = formula_target
+        self.wait(2)

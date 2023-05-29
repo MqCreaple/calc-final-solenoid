@@ -166,13 +166,11 @@ B_j(x, y, 0) =k\lambda_I\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{
 }{
     (\alpha^2 + \alpha^2\tan^2\theta)^\frac{3}{2}
 }}
-
 $$
 
 Put the command factor $\alpha$ in the front of the denominator, and we have:
 
 $$
-
 \begin{align*}B_j(x, y, 0)
 &=k\lambda_I\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{ \alpha^2\tan\theta (\sec^2\theta\mathrm{d}\theta) \mathrm{d}l }{ [\alpha^2(1 + 1\tan^2\theta)]^\frac{3}{2} }}\\
 &=\frac{k\lambda_I}{\alpha}\oint_{-\frac{\pi}{2}}^\frac{\pi}{2} {\frac{ \tan\theta (\sec^2\theta\mathrm{d}\theta) \mathrm{d}l }{ (1 + \tan^2\theta)^\frac{3}{2} }} \end{align*}
@@ -222,7 +220,6 @@ B_k(x, y, 0) =k\lambda_I\oint_{-\infty}^\infty {\frac{
 }{
     (x^2 + y^2 + z^2)^\frac{3}{2}
 }}
-
 $$
 
 Since the equations share a similar pattern, we can use similar approaches to evaluate them. After replacing the   non-integration variables $x$ and $y$ with $\alpha$, we get:
@@ -233,20 +230,17 @@ B_k(x, y, 0) =k\lambda_I\oint_{-\infty}^\infty {\frac{
 }{
     (\alpha^2 + z^2)^\frac{3}{2}
 }}
-
 $$
 
 And trig substitution of $z=\alpha\tan\theta$ still applies here.
 
 $$
 \begin{align*}
-
 B_k(x, y, 0) &=k\lambda_I\oint_{-\infty}^\infty {\frac{
      y\mathrm{d}l\mathrm{d}z
 }{
     (\alpha^2[1 + \tan^2\theta])^\frac{3}{2}
 }}\\
-
 &= k\lambda_I\oint_{-\infty}^\infty {\frac{
      y\alpha\sec^2\theta\mathrm{d}\theta\mathrm{d}l
 }{
@@ -259,10 +253,8 @@ Simplify it as the previous integral:
 
 $$
 \begin{align*}
-
 &=k\lambda_I\oint_{-\infty}^\infty {\frac{y\alpha\sec^2\theta\mathrm{d}\theta\mathrm{d}l
 }{\alpha^3\sec^3\theta}}\\
-
 &= \frac{k\lambda_I}{\alpha^2}\oint_{-\infty}^\infty {\frac{y\mathrm{d}\theta\mathrm{d}l
 }{\sec\theta}}
 \end{align*}
