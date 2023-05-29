@@ -63,7 +63,7 @@ def solenoid_wire(radius, zlen, coil_cnt, **kwargs):
     )
 
 class Solenoid(ParametricFunction):
-    def __init__(self, radius, zlen, coil_cnt, **kwargs):
+    def __init__(self, radius : float, zlen : float, coil_cnt : float, **kwargs):
         self.radius = radius
         self.zlen = zlen
         self.coil_cnt = coil_cnt
@@ -98,6 +98,7 @@ class Solenoid(ParametricFunction):
         shift_val = ang / (2 * PI) * self.coil_height
         ret.rotate(ang, OUT).shift(np.array([0,0,shift_val]))
         return ret
+    
 def current_in_symbol(cent: np.array, radius: float, **kwargs) -> VGroup:
         circ = Circle(radius, **kwargs).move_to(cent)
         # draw the cross symbol
@@ -111,3 +112,26 @@ def current_out_symbol(cent: np.array, radius: float, **kwargs) -> VGroup:
         # draw the dot symbol
         dot = Dot(circ.get_center(), **kwargs)
         return VGroup(circ, dot)
+
+def vec_by_polar(r : float, theta : float) -> np.ndarray:
+    return r * np.array([np.cos(theta), np.sin(theta), 0])
+
+class TipedCircle(VGroup):
+    def __init__(self, radius : float, tip_cnt : int, is_ccw : bool, arr_color, **kwargs):
+        self.circ = Circle(radius=radius, **kwargs)
+        self.tip_cnt = tip_cnt
+        ang_offset = 2*PI/self.tip_cnt
+        self.tips = []
+        for i in range(self.tip_cnt):
+            tip_angle = i*ang_offset + PI/2
+            tip_point = vec_by_polar(radius, i * ang_offset)
+
+            tip = Triangle(color = arr_color, fill_color = arr_color, fill_opacity=1)
+            tip.rotate(30 * DEGREES)
+            tip.rotate(tip_angle).scale(
+                self.circ.stroke_width / 40).move_to(tip_point)
+            self.tips.append(tip)
+        tmp = VGroup(self.circ, *self.tips)
+        if not is_ccw:
+            tmp.rotate(PI, RIGHT)
+        super().__init__(tmp)

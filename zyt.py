@@ -244,10 +244,14 @@ class InfLineAmpLaw(ThreeDScene):
 
         wire = Wire(wire_line, current=2)
         mag_field = MagneticField(wire, x_range=xrg, y_range=yrg)
-        sxrg = xrg.copy(); sxrg[-1] = .3
-        syrg = yrg.copy(); syrg[-1] = .3
-        mag_streamlines = StreamLines(func = mag_field.func, x_range=sxrg, y_range=syrg, opacity=.5)
-        mag_f_create_anim = AnimationGroup(SpinInFromNothing(mag_field), SpinInFromNothing(mag_streamlines))
+        sxrg = xrg.copy()
+        sxrg[-1] = .3
+        syrg = yrg.copy()
+        syrg[-1] = .3
+        mag_streamlines = StreamLines(
+            func=mag_field.func, x_range=sxrg, y_range=syrg, opacity=.5)
+        mag_f_create_anim = AnimationGroup(SpinInFromNothing(
+            mag_field), SpinInFromNothing(mag_streamlines))
         self.play(
             LaggedStart(
                 electron_moving_anim,
@@ -300,25 +304,27 @@ class InfLineAmpLaw(ThreeDScene):
         LOOP_RAD = 2
         self.play(
             integration_val.animate.become(MathTex(
-            r"\frac{\oint \vec B \cdot \mathrm d\vec l}{\mu_0} = 0").to_corner(UR)),
-            
+                r"\frac{\oint \vec B \cdot \mathrm d\vec l}{\mu_0} = 0").to_corner(UR)),
+
             circ_seg.animate.become(Arc(radius=LOOP_RAD, start_angle=0, angle=circ_seg_d_ang, color=BLUE,
                                     stroke_width=4).move_arc_center_to(amp_loop.get_center()).shift(OUT * 0.01)),
-            
-            amp_loop.animate.become(Circle(radius=LOOP_RAD, color=RED).move_to(wire_line.get_center())),
-            
+
+            amp_loop.animate.become(
+                Circle(radius=LOOP_RAD, color=RED).move_to(wire_line.get_center())),
+
             run_time=1.5)
         self.wait(1)
         self.play(move_along_circ_anim, integration_anim, run_time=4)
         self.wait(1)
-        
+
+
 class SolenoidAmpLaw(ThreeDScene):
     def construct(self):
         WID = self.camera.frame_width
         HEI = self.camera.frame_height
         cam_trackers = {
             "phi": self.camera.phi_tracker,
-            "theta": self.camera.theta_tracker,            
+            "theta": self.camera.theta_tracker,
         }
         dbg_axis = ThreeDAxes()
         self.add(dbg_axis)
@@ -326,60 +332,167 @@ class SolenoidAmpLaw(ThreeDScene):
         ylabel = dbg_axis.get_y_axis_label("y")
         zlabel = dbg_axis.get_z_axis_label("z")
         self.add(xlabel, ylabel, zlabel)
-        
+
         self.set_camera_orientation(phi=60 * DEGREES, theta=45 * DEGREES)
         # generate solenoid
         SOL_COIL = 20
         solenoid = Solenoid(2, 10, SOL_COIL, color=WHITE)
-        inouts = solenoid.get_inout_symbols(.2, PI/2, False, color=WHITE) 
+        inouts = solenoid.get_inout_symbols(.2, PI/2, False, color=WHITE)
         # rotate the solenoid so that it will be horizontal
         sol_with_sign = VGroup(solenoid, inouts).rotate(90*DEGREES, axis=UP)
-        
+
         sol_wire = Wire(solenoid, current=2)
         self.play(Create(solenoid))
-        
+
         DOT_CNT = 25
-        DOT_TRAVEL_MAX_TM = 6  # seconds
-        electron_dots = [Dot3D(solenoid.get_start(), color=BLUE) for _ in range(DOT_CNT)]
+        DOT_TRAVEL_MAX_TM = 8  # seconds
+        electron_dots = [Dot3D(solenoid.get_start(), color=BLUE)
+                         for _ in range(DOT_CNT)]
         electron_moving_anim = LaggedStart(
-            *[MoveAlongPath(electron_dots[i], solenoid) for i in range(DOT_CNT)],
+            *[MoveAlongPath(electron_dots[i], solenoid)
+              for i in range(DOT_CNT)],
             lag_ratio=(1/DOT_CNT), run_time=DOT_TRAVEL_MAX_TM
         )
-        
+
         # create magnetic field and streamline in the cross section of the solenoid
-        cam_perspective_change_anim  = AnimationGroup(
+        cam_perspective_change_anim = AnimationGroup(
             cam_trackers["phi"].animate.set_value(0),
             cam_trackers["theta"].animate.set_value(-90 * DEGREES),
+            run_time = 1.5
         )
-        xrg = [-WID/2, WID/2, .5]; sxrg = [-WID/2, WID/2, .3]
-        yrg = [-HEI/2, HEI/2, .5]; syrg = [-HEI/2, HEI/2, .3]   
+        xrg = [-WID/2, WID/2, .5]
+        sxrg = [-WID/2, WID/2, .3]
+        yrg = [-HEI/2, HEI/2, .5]
+        syrg = [-HEI/2, HEI/2, .3]
         mag_field = MagneticField(sol_wire, x_range=xrg, y_range=yrg)
-        mag_streamline = StreamLines(func=mag_field.func, x_range=sxrg, y_range=syrg, opacity=.5)
+        mag_streamline = StreamLines(
+            func=mag_field.func, x_range=sxrg, y_range=syrg, opacity=.5)
         field_gen_anim = AnimationGroup(
-            SpinInFromNothing(mag_field), SpinInFromNothing(mag_streamline), run_time=2
+            SpinInFromNothing(mag_field), SpinInFromNothing(mag_streamline), run_time=1.5
         )
-        
+
         show_sign_anim = AnimationGroup(FadeOut(solenoid), FadeOut(*electron_dots),
-            FadeIn(inouts))
+                                        FadeIn(inouts))
 
         self.play(
-                LaggedStart(
+            AnimationGroup(
                 electron_moving_anim,
                 cam_perspective_change_anim,
                 field_gen_anim,
-                show_sign_anim,
-                lag_ratio=.25
-                ))
-    
+                lag_ratio=.35
+            )
+        )
+        self.play(show_sign_anim, run_time=2)
+        self.wait(1)
+        
+        # put an rectangular amperian loop in the middle of the solenoid
+        amp_rect = Rectangle(width=4, height=2, color=WHITE)
+        amp_rect.move_to(ORIGIN + OUT * .001)
+        self.play(Create(amp_rect))
+        int_segment = Square(side_length=.05, color=BLUE, fill_color=BLUE, fill_opacity=1)
+        # demonstrate integration using amperian loop
+        self.play(MoveAlongPath(int_segment, amp_rect), run_time=2)
+        self.wait(1)
+        
+        # indicate that there are no enclosed current 
+        cur_inc_0_txt = MathTex(r"I_{\text{enclosed}} = 0").to_corner(UR)
+        
+        cent_amp_rect = Rectangle(width=0, height=0, color=WHITE)
+        amp_rect_cpy = amp_rect.copy().set_stroke(width=15)
+        self.play(amp_rect_cpy.animate.become(cent_amp_rect), run_time=1.5)
+        self.remove(amp_rect_cpy, cent_amp_rect)
+        self.play(Write(cur_inc_0_txt))
+        self.wait(1)
+        self.remove(int_segment)
+        
+        amp_rect_upline = Line(amp_rect.get_corner(UR), amp_rect.get_corner(UL), color=WHITE)
+        amp_rect_downline = Line(amp_rect.get_corner(DL), amp_rect.get_corner(DR), color=WHITE)
+        amp_rect_leftline = Line(amp_rect.get_corner(UL), amp_rect.get_corner(DL), color=WHITE)
+        amp_rect_rightline = Line(amp_rect.get_corner(DR), amp_rect.get_corner(UR), color=WHITE)
+        up_int_text =  MathTex(r"\oint \vec{B} \cdot \mathrm d\vec{l} \ (\text{up})").scale(.6).next_to(
+            amp_rect_upline.get_start(), UP, buff=.15
+        )
+        dn_int_text = MathTex(r"\oint \vec{B} \cdot \mathrm d\vec{l} \ (\text{up})").scale(.6).next_to(
+            amp_rect_downline.get_start(), DOWN, buff=.15)
+        lf_int_text = MathTex(r"\oint \vec{B} \cdot \mathrm d\vec{l} \ (\text{up})").scale(.6).next_to(
+            amp_rect_leftline.get_start(), LEFT, buff=.15)
+        rt_int_text = MathTex(r"\oint \vec{B} \cdot \mathrm d\vec{l} \ (\text{up})").scale(.6).next_to(
+            amp_rect_rightline.get_start(), RIGHT, buff=.15)
+        int_segment.move_to(amp_rect_upline.get_start())
+        lf_int_segment = int_segment.copy().move_to(amp_rect_leftline.get_start())
+        rt_int_segment = int_segment.copy().move_to(amp_rect_rightline.get_start())
 
+        def up_intseg_udpater(mob : Mobject):
+            mob.next_to(int_segment, UP, buff=.15)
+        def dn_intseg_updater(mob : Mobject):
+            mob.next_to(int_segment, DOWN, buff=.15)
+        def lf_intseg_updater(mob : Mobject):
+            mob.next_to(lf_int_segment, LEFT, buff=.15)
+        def rt_intseg_updater(mob : Mobject):
+            mob.next_to(rt_int_segment, RIGHT, buff=.15)
+        # show the left and right line integra is zero
+        
+        lf_int_text.add_updater(lf_intseg_updater)
+        rt_int_text.add_updater(rt_intseg_updater)
+        self.play(
+            MoveAlongPath(lf_int_segment, amp_rect_leftline),
+            MoveAlongPath(rt_int_segment, amp_rect_rightline),
+        )        
+        lf_int_text.remove_updater(lf_intseg_updater)
+        rt_int_text.remove_updater(rt_intseg_updater)
+        self.play(lf_int_text.animate.next_to(lf_int_segment, LEFT, buff=.15),
+                rt_int_text.animate.next_to(rt_int_segment, RIGHT, buff=.15))
+        lfrt_final_text_str = lf_int_text.get_tex_string() + " = "+ rt_int_text.get_tex_string() + " = 0"
+        lfrt_final_text = MathTex(
+            lfrt_final_text_str).scale(.6).next_to(cur_inc_0_txt, DOWN, buff=.15).shift(LEFT * .5)
+        # add zero to the left and right line integral
+        self.play(Transform(
+            VGroup(lf_int_text, rt_int_text), lfrt_final_text
+        ))
+        self.remove(lf_int_segment, rt_int_segment)
+
+        # use circles of magnetic fields to show that the left and right integral cancels out
+        
+        # top circle is turning counter-clockwise
+        TIP_CNT = 8
+        lf_circ = TipedCircle(solenoid.radius / 2, TIP_CNT, True, WHITE, color=WHITE).move_to(
+            np.array([-solenoid.zlen/2, solenoid.radius, 0])
+        )
+        rt_circ = TipedCircle(solenoid.radius / 2, TIP_CNT, True, WHITE, color=WHITE).move_to(
+            np.array([-solenoid.zlen/2, -solenoid.radius, 0])
+        ).next_to(lf_circ, RIGHT, buff=.15)
+        mag_circs = VGroup(lf_circ, rt_circ)
+        self.play(Create(mag_circs))
+        circs_dis = rt_circ.get_center() - lf_circ.get_center()
+        move_len = solenoid.zlen - circs_dis
+        self.play(mag_circs.animate.shift(RIGHT * move_len), run_time=1.5)
+        self.play(FadeOut(mag_circs))
+        self.wait(1)        
+        
+        # show the integration of top and bottom wire
+        up_int_text.add_updater(up_intseg_udpater)
+        self.add(up_int_text)
+        self.play(MoveAlongPath(int_segment, amp_rect_upline), run_time=2)
+        up_int_text.remove_updater(up_intseg_udpater)
+        self.play(up_int_text.animate.next_to(int_segment, LEFT, buff=.15))
+        self.add(dn_int_text)
+        dn_int_text.add_updater(dn_intseg_updater)
+        self.play(MoveAlongPath(int_segment, amp_rect_downline), run_time=2)
+        dn_int_text.remove_updater(dn_intseg_updater)
+        self.play(dn_int_text.animate.next_to(int_segment, RIGHT, buff=.15))
+        dn_int_text.remove(dn_intseg_updater)
+        self.wait(1)
+        
+        
 class SolenoidInOutTest(ThreeDScene):
     def construct(self):
         axes = ThreeDAxes()
-        xl, yl, zl = axes.get_axis_labels(), axes.get_y_axis_label("y"), axes.get_z_axis_label("z")
+        xl, yl, zl = axes.get_axis_labels(), axes.get_y_axis_label(
+            "y"), axes.get_z_axis_label("z") 
         self.add(axes, xl, yl, zl)
         self.set_camera_orientation(phi=60 * DEGREES, theta=45 * DEGREES)
         self.move_camera(zoom=.6)
-        solenoid = Solenoid(2, 10, 20, color=WHITE) 
+        solenoid = Solenoid(2, 10, 20, color=WHITE)
         self.play(Create(solenoid))
         self.wait(1)
         inouts = solenoid.get_inout_symbols(.2, PI/2, False, color=WHITE)
@@ -394,6 +507,29 @@ class SolenoidInOutTest(ThreeDScene):
         )
         self.wait(1)
 
+class ArrowCircleTest(Scene):
+    def construct(self):
+        circ = Circle(radius=2, color=WHITE)
+        TIP_CNT = 5
+        ang_offset = 2*PI/TIP_CNT
+        tips = []
+        for i in range(TIP_CNT):
+            tip_angle = i*ang_offset + PI/2
+            tip_point = vec_by_polar(2, i * ang_offset)
+            tip = Triangle()
+            tip.rotate(30 * DEGREES)
+            tip.rotate(tip_angle).scale(circ.stroke_width / 40).move_to(tip_point)
+            tips.append(tip)
+        arrow_circ = VGroup(circ, *tips)
+        self.play(Create(arrow_circ))
+        self.wait(1)
+        
+        tipcirc = TipedCircle(3, 6, True, WHITE, color=WHITE)
+        self.play(Create(tipcirc))
+        tip_cw = TipedCircle(4, 7, False, BLUE, color=WHITE)
+        self.play(Create(tip_cw))
+        self.wait(1)
+        
 class BugTest(ThreeDScene):
     def construct(self):
         field = ArrowVectorField(lambda p: np.array(
