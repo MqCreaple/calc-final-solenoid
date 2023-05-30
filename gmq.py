@@ -1,6 +1,7 @@
 from manim import *
 import numpy as np
 import helper
+from collections.abc import *
 
 class BiotSavart(ThreeDScene):
     """
@@ -53,8 +54,8 @@ class SolenoidSlice(ThreeDScene):
     """
     Demonstrate the two different methods to integrate along a solenoid.
     """
-    def rotate_to_face_camera(self, object: Mobject):
-        return object.rotate(self.camera.get_phi(), axis = RIGHT).rotate(90 * DEGREES + self.camera.get_theta(), axis = OUT)
+    def face_camera(self, object: Mobject):
+        return helper.face_camera(object, self.camera.get_theta(), self.camera.get_phi())
 
     def cylinder_curve(self, rad: float, z_len: float, n: int):
         return ParametricFunction(
@@ -80,12 +81,6 @@ class SolenoidSlice(ThreeDScene):
             stroke_color=YELLOW,
         )
 
-    def cross_symbol(self, x: float, z: float, size = 0.2, color: str = WHITE):
-        line1 = Line(start = [x - size, 0, z - size], end = [x + size, 0, z + size], color = color, stroke_width = 15 * size)
-        line2 = Line(start = [x - size, 0, z + size], end = [x + size, 0, z - size], color = color, stroke_width = 15 * size)
-        circle = Circle(radius = size * 1.25, color = color, stroke_width = 15 * size).rotate(90 * DEGREES, axis = RIGHT).shift([x, 0, z])
-        return VGroup(line1, line2, circle)
-
     def construct(self):
         axes = ThreeDAxes(x_range = [-2, 2], y_range = [-2, 2], z_range = [-2, 2])
         self.add(axes)
@@ -103,18 +98,18 @@ class SolenoidSlice(ThreeDScene):
         self.wait(7)
 
         ## script: The essence of integration is to sum up a lot of small things, although each of these small pieces is different.
-        dot = Dot3D(point = axes.coords_to_point(0, 0, 0), color = RED)
-        dot_label = self.rotate_to_face_camera(MathTex(r'O', color = RED)).next_to(dot, IN)
+        dot = Dot3D(point = axes.coords_to_point(0.3, 0, 0), color = RED)
+        dot_label = self.face_camera(MathTex(r'O', color = RED)).next_to(dot, IN)
         magnetic = Vector([0, 0, 0], color = BLUE)
-        magnetic_label = self.rotate_to_face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
+        magnetic_label = self.face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
         self.play(Create(dot), Write(dot_label))
         self.wait(1)
 
         k = 0.5
         label_added = False
         # animation of sum from u = 10 to 30
-        magnetic = Vector([0, 0, 0], color = BLUE)
-        magnetic_label = self.rotate_to_face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
+        magnetic = Vector([0, 0, 0], color = BLUE).shift(dot.get_center())
+        magnetic_label = self.face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
         k = 1.2
         circle = Circle(radius = solenoid_radius, color = BLUE).shift([0, 0, -4])
         circle.generate_target()
@@ -122,7 +117,7 @@ class SolenoidSlice(ThreeDScene):
         lower_val = k * (-4) / np.sqrt(solenoid_radius ** 2 + 16)
         upper_val = k * 4 / np.sqrt(solenoid_radius ** 2 + 16)
         magnetic.generate_target()
-        magnetic.target = Vector([0, 0, upper_val - lower_val], color = BLUE)
+        magnetic.target = Vector([0, 0, upper_val - lower_val], color = BLUE).shift(dot.get_center())
         magnetic_label.generate_target()
         magnetic_label.target.next_to(magnetic.target, UP)
         magnetic_rate_func = lambda t: ((k * (t * 8 - 4) / np.sqrt(solenoid_radius ** 2 + (t * 8 - 4) ** 2)) - lower_val) / (upper_val - lower_val)
@@ -137,11 +132,11 @@ class SolenoidSlice(ThreeDScene):
         self.play(Uncreate(circle), Uncreate(magnetic), Uncreate(magnetic_label))
 
         # animation of sum off all v curves
-        magnetic = Vector([0, 0, 0], color = BLUE)
-        magnetic_label = self.rotate_to_face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
+        magnetic = Vector([0, 0, 0], color = BLUE).shift(dot.get_center())
+        magnetic_label = self.face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
         line = Line(start = [solenoid_radius, 0, -4], end = [solenoid_radius, 0, 4], color = BLUE)
         magnetic.generate_target()
-        magnetic.target = Vector([0, 0, upper_val - lower_val], color = BLUE)
+        magnetic.target = Vector([0, 0, upper_val - lower_val], color = BLUE).shift(dot.get_center())
         magnetic_label.generate_target()
         magnetic_label.target.next_to(magnetic.target, UP)
         self.play(Create(line), Create(magnetic), Write(magnetic_label))
@@ -157,9 +152,10 @@ class SolenoidSlice(ThreeDScene):
 
         ## script: Well in this case, it turns out that first integrating vertically then integrate the vertical pile of wires around a circle is simpler.
         ## script: Let's focus on one small section of the solenoid:
-
-        line_pile = []
-        cross_symbol_pile = []
+        angle = -PI / 6
+        x = solenoid_radius * np.cos(angle)
+        y = solenoid_radius * np.sin(angle)
+        line_pile: Sequence[Line] = []
         animations = []
         for v in range(len(surface.v_curves)):
             animations.append(Uncreate(surface.v_curves[v]))
@@ -167,36 +163,68 @@ class SolenoidSlice(ThreeDScene):
         animations = []
         for u in range(len(surface.u_curves)):
             height = surface.get_u_from_index(u)
-            segment = Vector([0, 0.2, 0], color=YELLOW).shift([solenoid_radius, -0.1, height])
+            segment = Line([0, 0, 0], np.array([y, -x, 0]) * 0.1 / solenoid_radius, color=YELLOW).move_to([x, y, height])
             line_pile.append(segment)
-            cross_symbol_pile.append(self.cross_symbol(solenoid_radius, height, size = 0.05, color = YELLOW))
+            # create a cross symbol that will faces the camera after rotation
             animations.append(Transform(surface.u_curves[u], segment))
         self.play(*animations)
         self.wait(2)
 
+        ## script: For convenience, let's denote the direction from observation point to the wire pile as $\alpha$.
+        ## script: Also, let's shift the observation point to the origin.
         # animate a line to indicate the radius of solenoid
-        rad_line = Line(start = [0, 0, 0], end = [solenoid_radius, 0, 0], color = RED)
-        rad_line_label = self.rotate_to_face_camera(MathTex(r'\alpha', color = RED)).next_to(rad_line, OUT)
-        self.play(Create(rad_line), Write(rad_line_label))
+        alpha_vec = Arrow3D(start = dot.get_center(), end = [x, y, 0], color = RED)
+        alpha_vec_label = self.face_camera(
+            MathTex(r'\vec\alpha=\begin{bmatrix}x\\y\\0\end{bmatrix}', color = RED)
+        ).next_to(alpha_vec, LEFT + UP)
+        self.play(Create(alpha_vec), Write(alpha_vec_label))
+        self.wait(2)
+        dot.generate_target()
+        dot.target.move_to([0, 0, 0])
+        dot_label.generate_target()
+        dot_label.target.next_to(dot.target, IN)
+        alpha_vec.generate_target()
+        alpha_vec.target.shift(dot.target.get_center() - dot.get_center())
+        alpha_vec_label.generate_target()
+        alpha_vec_label.target.next_to(alpha_vec.target, LEFT + UP)
+        for line in surface.u_curves:
+            line.generate_target()
+            line.target.shift(dot.target.get_center() - dot.get_center())
+        self.play(
+            MoveToTarget(dot), MoveToTarget(dot_label),
+            MoveToTarget(alpha_vec), MoveToTarget(alpha_vec_label),
+            *[MoveToTarget(line) for line in surface.u_curves]
+        )
+        self.wait(2)
+
+        self.play(Uncreate(alpha_vec), Unwrite(alpha_vec_label))
         self.wait(1)
-        self.play(Uncreate(rad_line), Unwrite(rad_line_label))
 
         # move camera to face the line pile
         cam_phi, cam_theta, _, _, _ = self.camera.get_value_trackers()
         dot_label.generate_target()
-        dot_label.target = MathTex(r'O', color = RED).rotate(PI / 2, axis = RIGHT).next_to(dot, IN)
+        dot_label.target = MathTex(r'O', color = RED).rotate(angle).rotate(PI / 2, axis = np.array([x, y, 0])).next_to(dot, IN)
         self.play(
             cam_phi.animate.set_value(90 * DEGREES),
-            cam_theta.animate.set_value(-90 * DEGREES),
+            cam_theta.animate.set_value(-90 * DEGREES + angle),
             MoveToTarget(dot_label)
         )
 
+        cross_symbol_pile: Sequence[VGroup] = []
+        for line in surface.u_curves:
+            cross_symbol_pile.append(
+                self.face_camera(helper.current_in_symbol(line.get_center(), 0.05, color = YELLOW, stroke_width = 1))
+            )
         animations = []
         # animation of changing every short line to a cross symbol
         for i in range(len(line_pile)):
             animations.append(Transform(surface.u_curves[i], cross_symbol_pile[i]))
         self.play(*animations)
         self.wait(2)
+
+        # demonstrate the cross product of $Idl$ and $r$
+        line_pile_index = 25
+        # TODO
 
         self.play(FadeOut(dot_label), FadeOut(dot), FadeOut(axes), *[FadeOut(symbol) for symbol in surface.u_curves])
 
@@ -443,24 +471,70 @@ class IntegrateSlice(Scene):
         formula_target = MathTex(
             r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
             r'\int_{-\infty}^{+\infty}',
-            r'\frac 1{[\alpha^2(1 + \tan^2\theta)]^{\frac 32}}',
+            r'{1', r'\over', r'[\alpha^2(1 + \tan^2\theta)]^{\frac 32}}',
             r'\mathrm d(\alpha\tan\theta)'
         )
         formula_target[1].set_color(YELLOW)
-        formula_target[3].set_color(YELLOW)
-        self.play(TransformMatchingTex(formula, formula_target), Unwrite(z_sub))
-        formula = formula_target
-        self.wait(3)
+        formula_target[5].set_color(YELLOW)
+        self.play(Transform(formula, formula_target), Unwrite(z_sub))
+        self.wait(2)
 
-        ## script: Now simplify the expression. Remember to change the bound of integration.
+        ## script: Now, let's differentiate the $\alpha\tan\theta$. Remember to change the bound of integration.
         formula_target = MathTex(
             r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
             r'\int_{-\frac\pi 2}^{+\frac\pi 2}',
-            r'\frac{\alpha\sec^2\theta}{(\alpha^2\sec^2\theta)^{\frac 32}}}',
+            r'{1', r'\over', r'[\alpha^2(1 + \tan^2\theta)]^{\frac 32}}',
+            r'\alpha\sec^2\theta',
+            r'\mathrm d\theta'
+        )
+        formula_target[1].set_color(YELLOW)
+        formula_target[6].set_color(YELLOW)
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            ReplacementTransform(formula[3], formula_target[3]),
+            ReplacementTransform(formula[4], formula_target[4]),
+            ReplacementTransform(formula[5], formula_target[5:])
+        )
+        formula = formula_target
+        self.wait(3)
+
+        ## script: Now simplify the expression.
+        formula_target = MathTex(
+            r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
+            r'\int_{-\frac\pi 2}^{+\frac\pi 2}',
+            r'{\alpha\sec^2\theta', r'\over', r'(\alpha^2\sec^2\theta)^{\frac 32}}}',
             r'\mathrm d\theta',
         )
         formula_target[1].set_color(YELLOW)
-        formula_target[3].set_color(YELLOW)
-        self.play(TransformMatchingTex(formula, formula_target))
+        formula_target[5].set_color(YELLOW)
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(VGroup(formula[2], formula[5]), formula_target[2]),
+            ReplacementTransform(formula[3], formula_target[3]),
+            ReplacementTransform(formula[4], formula_target[4]),
+            ReplacementTransform(formula[6], formula_target[5]),
+        )
         formula = formula_target
-        self.wait(2)
+        self.wait(4)
+
+        ## script: then simplify the denomenator:
+        formula_target = MathTex(
+            r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
+            r'\int_{-\frac\pi 2}^{+\frac\pi 2}',
+            r'{\alpha\sec^2\theta', r'\over', r'\alpha^3\sec^3\theta}}',
+            r'\mathrm d\theta',
+        )
+        formula_target[1].set_color(YELLOW)
+        formula_target[5].set_color(YELLOW)
+        self.play(
+            Transform(formula[0], formula_target[0]),
+            Transform(formula[1], formula_target[1]),
+            Transform(formula[2], formula_target[2]),
+            Transform(formula[3], formula_target[3]),
+            Transform(formula[4], formula_target[4]),
+            Transform(formula[5], formula_target[5]),
+        )
+        self.wait(3)
