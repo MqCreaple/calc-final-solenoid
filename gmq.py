@@ -213,7 +213,7 @@ class SolenoidSlice(ThreeDScene):
         cross_symbol_pile: Sequence[VGroup] = []
         for line in surface.u_curves:
             cross_symbol_pile.append(
-                self.face_camera(helper.current_in_symbol(line.get_center(), 0.05, color = YELLOW, stroke_width = 1))
+                self.face_camera(helper.current_in_symbol(line.get_center(), 0.075, color = YELLOW, stroke_width = 1))
             )
         animations = []
         # animation of changing every short line to a cross symbol
@@ -240,7 +240,7 @@ class IntegrateSlice(Scene):
         axes_labels = Axes.get_axis_labels(axes, x_label = r"\alpha", y_label = r"z")
         cross_symbol_pile = []
         for u in np.linspace(-4, 4, 40):
-            cross_symbol_pile.append(self.cross_symbol(solenoid_radius, u, size = 0.05, color = YELLOW))
+            cross_symbol_pile.append(helper.current_in_symbol([solenoid_radius, u, 0], 0.075, color = YELLOW, stroke_width = 1))
         observe_point = Dot([0, 0, 0], color = RED)
         observe_point_label = MathTex(r'O', color = RED).next_to(observe_point, DOWN)
         self.play(
@@ -538,3 +538,65 @@ class IntegrateSlice(Scene):
             Transform(formula[5], formula_target[5]),
         )
         self.wait(3)
+
+        formula_target = MathTex(
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I}{\alpha}',
+            r'\int_{-\frac\pi 2}^{+\frac\pi 2}',
+            r'{1', r'\over', r'\sec\theta}',
+            r'\mathrm d\theta',
+        )
+        formula_target[1].set_color(YELLOW)
+        formula_target[5].set_color(YELLOW)
+        self.play(
+            Transform(formula[0], formula_target[0]),
+            Transform(formula[1], formula_target[1]),
+            Transform(formula[2], formula_target[2]),
+            Transform(formula[3], formula_target[3]),
+            Transform(formula[4], formula_target[4]),
+            Transform(formula[5], formula_target[5]),
+        )
+        self.wait(3)
+        formula_target = MathTex(
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I}{\alpha}',
+            r'\int_{-\frac\pi 2}^{+\frac\pi 2}',
+            r'\cos\theta',
+            r'\mathrm d\theta',
+        )
+        formula_target[1].set_color(YELLOW)
+        formula_target[3].set_color(YELLOW)
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2:5], formula_target[2]),
+            ReplacementTransform(formula[5], formula_target[3]),
+        )
+        formula = formula_target
+        self.wait(3)
+
+        ## script: Integrating $\cos\theta$ is straightforward:
+        formula_target = MathTex(
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I}{\alpha}',
+            r'\sin\theta',
+            r'\huge\mid_{-\frac\pi 2}^{+\frac\pi 2}',
+        )
+        formula_target[2].set_color(YELLOW)
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[2], formula_target[1]),
+            ReplacementTransform(VGroup(formula[1], formula[3]), formula_target[2]),
+        )
+        formula = formula_target
+        self.wait(3)
+        formula_target = MathTex(
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I}{\alpha}',
+            r'\cdot 2'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1:3], formula_target[1]),
+        )
+        formula = formula_target
+        self.wait(3)
+        formula_target = MathTex(r'\frac{\mu_0}{2\pi}\frac{\lambda_I}{\alpha}')
+        self.play(Transform(formula, formula_target))
+        self.wait(2)
