@@ -99,16 +99,16 @@ class Solenoid(ParametricFunction):
         ret.rotate(ang, OUT).shift(np.array([0,0,shift_val]))
         return ret
     
-def current_in_symbol(cent: np.array, radius: float, **kwargs) -> VGroup:
-        circ = Circle(radius, **kwargs).move_to(cent)
+def current_in_symbol(center: np.array, radius: float, **kwargs) -> VGroup:
+        circ = Circle(radius, **kwargs).move_to(center)
         # draw the cross symbol
-        line1 = Line(start=circ.get_left(), end=circ.get_right(), **kwargs)
-        line2 = Line(start=circ.get_top(), end=circ.get_bottom(), **kwargs)
-        cross = VGroup(line1, line2).rotate(PI/4, OUT)
-        return VGroup(circ, cross)
+        line1 = Line(start=circ.get_left(), end=circ.get_right(), **kwargs).rotate(PI/4, OUT)
+        line2 = Line(start=circ.get_top(), end=circ.get_bottom(), **kwargs).rotate(PI/4, OUT)
+        return VGroup(circ, line1, line2)
 
-def current_out_symbol(cent: np.array, radius: float, **kwargs) -> VGroup:
-        circ = Circle(radius, **kwargs).move_to(cent)
+def current_out_symbol(center: np.array, radius: float, **kwargs) -> VGroup:
+        circ = Circle(radius, **kwargs).move_to(center)
+        print(circ.stroke_width)
         # draw the dot symbol
         dot = Dot(circ.get_center(), **kwargs)
         return VGroup(circ, dot)
@@ -135,3 +135,9 @@ class TipedCircle(VGroup):
         if not is_ccw:
             tmp.rotate(PI, RIGHT)
         super().__init__(tmp)
+
+def face_camera(object: Mobject, theta: float, phi: float):
+        """
+        Rotate the object to face the camera with given `theta` and `phi` angles.
+        """
+        return object.rotate(phi, axis = RIGHT).rotate(90 * DEGREES + theta, axis = OUT)

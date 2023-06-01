@@ -514,13 +514,9 @@ Plug this value back to the original expression to replace cosine, and we have:
 $$
 \begin{align*}
 &\int_0^{2\pi}\frac{1}{\beta^2-2\beta\cos\theta+1}\mathrm{d}\theta\\
-
 &= \int_0^{2\pi}\frac{1}{\beta^2 + 1-2\beta(\frac{2}{1+\tan^2\frac{\theta}{2}} -1 )}\mathrm{d}\theta\\
-
 &= \int_0^{2\pi}\frac{1}{\beta^2 + 1-\frac{4\beta}{1+\tan^2\frac{\theta}{2}} + 2\beta }\mathrm{d}\theta\\
-
 &= \int_0^{2\pi}\frac{1}{(\beta+1)^2-\frac{4\beta}{1+\tan^2\frac{\theta}{2}}}\mathrm{d}\theta\\
-
 &= \int_0^{2\pi}\frac{1+\tan^2\frac{\theta}{2}}{(\beta+1)^2(1+\tan^2\frac{\theta}{2}) - 4\beta}\mathrm{d}\theta\\
 \end{align*}
 $$
@@ -530,7 +526,6 @@ Distribute $(\beta+1)^2$, and we have:
 $$
 \begin{align*}
 &\int_0^{2\pi}\frac{1+\tan^2\frac{\theta}{2}}{(\beta+1)^2\tan^2\frac{\theta}{2}+\beta^2+2\beta+1-4\beta}\mathrm{d}\theta\\
-
 &=\int_0^{2\pi}\frac{1+\tan^2\frac{\theta}{2}}{(\beta+1)^2\tan^2\frac{\theta}{2}+(\beta-1)^2}\mathrm{d}\theta\\
 \end{align*}
 $$
@@ -540,11 +535,8 @@ Notice the numerator of the expression could be replaced by $\sec^2\frac{\theta}
 $$
 \begin{align*}
 u &= \tan\frac{\theta}{2}\\
-
 \frac{\mathrm{d}u}{\mathrm{d}\theta} &= \frac{1}{2}\sec^2\\
-
 \mathrm{d}\theta &= \frac{2}{\sec^2\frac{\theta}{2}}\mathrm{d}u
-
 \end{align*}
 $$
 
@@ -553,9 +545,7 @@ Plug in this value, and change the bound of integration:
 $$
 \begin{align*}
 &\int_0^{2\pi}\frac{1+\tan^2\frac{\theta}{2}}{(\beta+1)^2\tan^2\frac{\theta}{2}+(\beta-1)^2}\mathrm{d}\theta\\
-
 &= \int_{-\infty}^{\infty}\frac{\cancel{\sec^2\frac{\theta}{2}}}{(\beta+1)^2u^2+(\beta-1)^2}\frac{2}{\cancel{\sec^2\frac{\theta}{2}}}\mathrm{d}u\\
-
 &= \int_{-\infty}^{\infty}\frac{2}{(\beta+1)^2u^2+(\beta-1)^2}\mathrm{d}u\\
 \end{align*}
 $$
@@ -582,10 +572,8 @@ Then we can consider the change of bound; the change of lower bound is formulate
 
 $$
 \begin{align*}
-
 \frac{b}{a}\tan\theta&=-\infty\\
 \theta&=\frac{\pi}{2} & (\text{given that} \ \frac{b}{a} < 0)
-
 \end{align*}
 $$
 
@@ -596,15 +584,10 @@ Plug the bounds, and we can evaluate the integration:
 $$
 \begin{align*}
 &\int_{-\infty}^{\infty} \frac{2}{a^2u^2+b^2}\mathrm{d}u \\
-
 &=\int_{\frac{\pi}{2}}^{-\frac{\pi}{2}} \frac{2}{\cancel{a^2}\frac{b^2}{\cancel{a^2}}\tan^2\theta+b^2}\cdot\frac{{b}}{a}\sec^2\theta \mathrm{d}\theta\\
-
 &= \int_{\frac{\pi}{2}}^{-\frac{\pi}{2}} \frac{2}{b^{\cancel{2}}(\tan^2\theta+1)}\cdot\frac{\cancel{b}}{a}\sec^2\theta\mathrm{d}\theta\\
-
 &= \int_{\frac{\pi}{2}}^{-\frac{\pi}{2}} \frac{2}{b\cancel{\sec^2\theta}}\cdot\frac{1}{a}\cancel{\sec^2\theta}\mathrm{d}\theta & (\sec^2\theta = \tan^2\theta+1)\\
-
 &= \int_{\frac{\pi}{2}}^{-\frac{\pi}{2}} \frac{2\mathrm{d}\theta}{ba} \\
-
 &= -\frac{2\pi}{ba}
 \end{align*}
 $$
