@@ -21,18 +21,25 @@ class CoordTransFromStackToCirc(ThreeDScene):
         for obj in objs:
             yield obj.rotate(self.camera.get_phi(), axis=RIGHT).rotate(90 * DEGREES + self.camera.get_theta(), axis=OUT)
 
+    def add_fixed_in_frame_updaters(self, *mobs : Mobject):
+        for mob in mobs:
+            mob.add_updater(lambda m: self.add_fixed_in_frame_mobjects(m))
+
     def construct(self):
+
         STACK_HEIGHT = 3.0
         # demonstrate the scene where wire stacking together in the x direction coordinate
         axes = ThreeDAxes(x_range=[-5, 5], y_range=[-5, 5], z_range=[-5, 5])
         x_label = axes.get_x_axis_label("y")
         y_label = axes.get_y_axis_label("x")
         z_label = axes.get_z_axis_label("z", rotation=-PI/2)
-        bz_formula_tex = MathTex(r"\frac{2yk\lambda_I}{x^2+y^2}\mathrm{d}l")
-        bz_formula_tex.add_updater(lambda mob : self.rotate_to_face_camera(mob)) # make it always face the camera
-        self.add(axes, bz_formula_tex)
+        self.add(axes)
         self.add(x_label, y_label, z_label)
         self.set_camera_orientation(phi=65 * DEGREES, theta=45 * DEGREES)
+        
+        
+        # change y and x with prime to indicate that when doint circular integration, the theta is 
+        
         current_vecs_20 = []
         current_vecs_50 = []
         current_vec_vg_20 = VGroup()
@@ -107,8 +114,8 @@ class CoordTransFromStackToCirc(ThreeDScene):
         for arr in non_center_arrs:
             self.remove(arr)
 
-        rvec_text = MathTex(r"\vec r").move_to(
-            to_pt_arrs[2].get_center() + UP * .5).scale(1.5)
+        rvec_text = MathTex(r"\vec r", color=BLUE).move_to(
+            to_pt_arrs[2].get_center() + UP * .5).scale(1.5).rotate(PI / 2)
         # change rvec to a 2d version of arrow
         rvec = Arrow(start=ORIGIN, end=pt_locs[-1], color=BLUE)
         annotated_rvec = VGroup(rvec, rvec_text)
@@ -125,14 +132,17 @@ class CoordTransFromStackToCirc(ThreeDScene):
         diameter_line = DashedLine(
             start=CIRC_LEFT, end=CIRC_RIGHT, color=MAROON)
         self.play(Create(circ), Create(diameter_line), run_time=1)
+        
         # cvec points from the center of the original coord system to the center of circle
         cvec = Arrow(start=np.array([0, 0, 0]), end=CIRC_CENT, color=GREEN)
-        cvec_text = MathTex(r"\vec c").move_to(
-            cvec.get_center() + UP * .4).scale(1.5)
-        cvec_with_annote = VGroup(cvec, cvec_text)
-
+        cvec_text = MathTex(r"\vec c", color=GREEN).move_to(
+            cvec.get_center() + UP * .5).scale(1.5)
+        
+        # add updators that makes cvec_text face upward
+    
+    
         orig_coord_objs = VGroup(axes, x_label, y_label, z_label, wire_stack_text,
-                                 current_vec_vg_50, current_vec_vg_20, xy_plane, cvec_with_annote)  # objects in the original coordinate system
+                                 current_vec_vg_50, current_vec_vg_20, xy_plane, cvec, cvec_text)  # objects in the original coordinate system
         trans_vec = np.array([CIRC_R, 0, 0])  # vector of translation
         self.move_camera(phi=0, theta=0, zoom=.4,
                          run_time=2, frame_center=trans_vec)
@@ -141,11 +151,39 @@ class CoordTransFromStackToCirc(ThreeDScene):
         ROTATW_TOT_TM = 10.0
 
         ROT_DEMO_START_ANG = PI
-        ROT_DEMO_END_ANG = -(PI + 35 * DEGREES)
+        ROT_DEMO_ANG_OFFSET_ABS = 35 * DEGREES
+        ROT_DEMO_END_ANG = -(PI + ROT_DEMO_ANG_OFFSET_ABS)
         ROT_DEMO_ANG_OFFSET = ROT_DEMO_END_ANG - ROT_DEMO_START_ANG
 
+        bz_formula_tex = MathTex(r"{2k\lambda_I", r"y", r"\over", r"x^2", r"+", r"y^2}", "\mathrm{d}l").to_corner(UL)
+        # paly indication animation on y^2 and x^2 + y^2 in the formula
+        # indicates that we want to figure out how to represent these two values in theta
+        # which is the integration variable we will use in the circular integration
+        self.add_fixed_in_frame_mobjects(bz_formula_tex)
+        self.remove(bz_formula_tex)
+        self.play(Write(bz_formula_tex), run_time=1)
+        self.add_fixed_in_frame_updaters(bz_formula_tex)
+        self.play(Indicate(bz_formula_tex[1]), run_time=1)
+        self.wait(1)
+        self.play(Indicate(bz_formula_tex[3:6]), run_time=1)
+        self.wait(1)
+        d_theta_tex = MathTex(r"\mathrm{d}\theta").next_to(bz_formula_tex, RIGHT, buff=.8)
+        arr_from_dtheta_to_bz_form = Arrow(start=d_theta_tex.get_left(), end=bz_formula_tex.get_right(), color=WHITE)
+        qustion_mark_on_arr = Text("?", color=WHITE).next_to(arr_from_dtheta_to_bz_form, UP, buff=.2)
+        self.add_fixed_in_frame_mobjects(d_theta_tex, arr_from_dtheta_to_bz_form, qustion_mark_on_arr)
+        self.remove(d_theta_tex, arr_from_dtheta_to_bz_form, qustion_mark_on_arr)
+        self.play(AnimationGroup(
+            Write(arr_from_dtheta_to_bz_form),
+            Write(d_theta_tex),
+            Write(qustion_mark_on_arr),
+            lag_ratio=.1
+        ), run_time=2)
+        self.wait(1)
+        
+        
         # # remove the original one since there will be update animation
         # self.play(FadeOut(annotated_rvec))
+        # rvec_text.add_updater(vec_text_updater)
         def annotated_rvec_updater(mob, alpha, start_ang, end_ang):
             ang = interpolate(start_ang, end_ang, alpha)
             # change of rvec
@@ -162,7 +200,9 @@ class CoordTransFromStackToCirc(ThreeDScene):
                 rvec_val) / np.linalg.norm(rvec_val)
             new_rvec_text_pos = circum_coord + \
                 (init_pt.get_center() - circum_coord) / 2 + rvec_unit_tan * .3
-            new_rvec_text = rvec_text.copy().move_to(new_rvec_text_pos)
+            rvec_tex_str = rvec_text.get_tex_string()
+            rvec_tex_color = rvec_text.get_color()
+            new_rvec_text = MathTex(rvec_tex_str, color=rvec_tex_color).scale(1.5).move_to(new_rvec_text_pos).rotate(PI/2)
             mob.become(VGroup(new_rvec, new_rvec_text))
 
         orig_coord_rot_anim = Rotate(
@@ -192,9 +232,9 @@ class CoordTransFromStackToCirc(ThreeDScene):
         # y component (from orig coord sys) of rvec (projected onto cvec)
         yprime = Arrow(start=final_circum_coord,
                        end=final_circum_coord + yprime_vec_val, color=RED)
-        yprime_text = MathTex(r"y^\prime").move_to(
+        yprime_text = MathTex(r"y^\prime", color=RED).move_to(
             yprime.get_center() + get_rt_vir_vec(yprime_vec_val) * .3).scale(1.5)
-
+        
         self.play(Create(yprime), Write(yprime_text), run_time=1)
 
         # connecting the end of yprime to the end of rvec
@@ -203,12 +243,108 @@ class CoordTransFromStackToCirc(ThreeDScene):
         proj_ed = proj_st + yprime_proj_val
         yprime_proj = DashedLine(start=proj_st, end=proj_ed, color=TEAL)
 
-        self.play(Create(yprime_proj), run_time=1)
-        yprime_formula_str = r"y^\prime = \frac{\vec c \cdot \vec r}{|\vec c|}"
-        yprime_formula = MathTex(yprime_formula_str).rotate(
-            PI / 2).move_to(yprime_text.get_right() + RIGHT * 2).scale(1.5)
+
+        # inciate that we can replace xprime^2 + yprime^2 with r^2
+        
+        self.play(Indicate(rvec_text), run_time=1.5)
+        self.play(Indicate(bz_formula_tex[3:6]), run_time=1.5) # tex[5] is yprime^2
+        
+        print(rvec_text in self.mobjects)
+        
+        rvec_text_cpy = MathTex(r"\vec r", color=BLUE).move_to(UP * .114514)
+        self.add_fixed_in_frame_mobjects(rvec_text_cpy)
+        rvec_text_cpy.move_to(bz_formula_tex[3:6].get_center())
+        self.remove(rvec_text_cpy)
+        # self.play(
+        #     rvec_text_cpy.animate.move_to(bz_formula_tex[5].get_center()),
+        #     ReplacementTransform(bz_formula_tex[5], rvec_text_cpy),
+        # )
+        # TODO: make issue on github repo about this
+        self.play(
+            FadeIn(rvec_text_cpy),
+            FadeOut(bz_formula_tex[3:6])
+        )
+        
+        self.play(Indicate(bz_formula_tex[1])) # indicate y
+        self.play(Indicate(yprime_text), 
+                  Circumscribe(yprime),
+                  run_time = 1.5
+                  ) # indicate yprime
+        yprime_text_cpy = MathTex(r"y^\prime", color=RED).move_to(UP * .114514)
+        self.add_fixed_in_frame_mobjects(yprime_text_cpy)
+        yprime_text_cpy.move_to(bz_formula_tex[1].get_center())
+        self.remove(yprime_text_cpy)
+        self.play(
+            FadeIn(yprime_text_cpy),
+            FadeOut(bz_formula_tex[1])
+        )
+        
+        
+        print(rvec_text in self.mobjects)
+        
+        self.wait(1)
+        self.add_fixed_in_frame_updaters(rvec_text_cpy)
+                
+        
+        self.play(Create(yprime_proj), run_time=1.5)
+        yprime_formula = MathTex(r"y^\prime", r"=" ,r"{\vec c", r"\cdot", r"\vec r", r"\over", r"|", r"\vec c", r"|}").rotate(
+            PI / 2).to_corner(DR).rotate(-PI/2).shift(UL * 1.5)
+        yprime_formula[0].set_color(RED) # yprime
+        yprime_formula[2].set_color(GREEN) # cvec
+        yprime_formula[4].set_color(BLUE) # rvec
+        yprime_formula[7].set_color(GREEN) # cvec
+        self.add_fixed_in_frame_mobjects(yprime_formula)
+        self.remove(yprime_formula)
         self.play(Write(yprime_formula), run_time=1)
         self.wait(1)
+        self.add_fixed_in_frame_updaters(yprime_formula)
+        
+        # now move the camera to make the triangle flat
+        
+        dot_product_triang = VGroup(
+            rvec, rvec_text, yprime, yprime_text, yprime_proj, cvec, cvec_text
+        )   # the triangle of projection
+        cam_trackers = {
+            "phi": self.camera.phi_tracker,
+            "theta": self.camera.theta_tracker,
+        }
+        
+        # turn the signs on the triangle so that they face upwards
+        rtex_up = MathTex(r"\vec r", color=BLUE).move_to(rvec_text.get_center()).scale(1.5).rotate(PI - ROT_DEMO_ANG_OFFSET_ABS)
+        yptex_up = MathTex(r"y^\prime", color=RED).move_to(yprime_text.get_center()).scale(1.5).rotate(PI - ROT_DEMO_ANG_OFFSET_ABS)
+        ctex_up = MathTex(r"\vec c", color=GREEN).move_to(cvec_text.get_center()).scale(1.5).rotate(PI - ROT_DEMO_ANG_OFFSET_ABS)
+
+        self.play(
+            cam_trackers["theta"].animate.set_value(PI/2 - ROT_DEMO_ANG_OFFSET_ABS),
+            FadeOut((orig_coord_objs - cvec - cvec_text)),
+            rvec_text.animate.become(rtex_up),
+            yprime_text.animate.become(yptex_up),
+            cvec_text.animate.become(ctex_up),
+            run_time=3
+        )
+        
+        cr_angle = Angle(cvec, rvec, radius=.5, quadrant=(1, -1))
+        phi_ang_tex = MathTex(r"\phi", color=WHITE).next_to(cr_angle, LEFT, buff=.2)
+        self.play(
+            Create(cr_angle),
+            Write(phi_ang_tex),
+        )
+        self.wait(1)
+        dotproduct_formula = MathTex(r"\vec c", r"\cdot", r"\vec r", r"=", r"|", r"\vec c", r"|",  r"\cdot", r"|", r"\vec r", r"|", r"\cos", r"\phi").set_color_by_tex_to_color_map({
+            r"\vec c": GREEN,
+            r"\vec r": BLUE,
+            r"\phi": WHITE,
+        }).to_corner(DR).shift(UL * 1.5)
+        self.add_fixed_in_frame_mobjects(dotproduct_formula); 
+        dotproduct_formula.to_corner(DL).shift(UR * 1.5)
+        self.remove(dotproduct_formula)
+        self.play(Write(dotproduct_formula), run_time=1)
+        self.wait(1)
+
+class CircIntFormula(Scene):
+    def construct(self):
+        pass
+    
 
 
 class InfLineAmpLaw(ThreeDScene):
@@ -538,11 +674,7 @@ class SolenoidAmpLaw(ThreeDScene):
         self.remove(*electron_dots)
         self.wait(1)
 
-        
-class CircularIntegration(ThreeDScene):
-    def construct(self):
-        return super().construct()
-        
+    
 class SolenoidInOutTest(ThreeDScene):
     def construct(self):
         axes = ThreeDAxes()
@@ -603,3 +735,4 @@ class BugTest(ThreeDScene):
         self.set_camera_orientation(phi=60 * DEGREES, theta=45 * DEGREES)
         self.play(SpiralIn(field), run_time=2)
         self.wait(1)
+
