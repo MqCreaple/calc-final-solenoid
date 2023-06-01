@@ -3,7 +3,7 @@ from collections.abc import *
 from colour import *
 import numpy as np
 
-class MySurface(VMobject):
+class MySur(VMobject):
     def __init__(
             self,
             func: Callable[[float, float], np.ndarray],

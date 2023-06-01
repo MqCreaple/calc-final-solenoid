@@ -28,7 +28,9 @@ class CoordTransFromStackToCirc(ThreeDScene):
         x_label = axes.get_x_axis_label("y")
         y_label = axes.get_y_axis_label("x")
         z_label = axes.get_z_axis_label("z", rotation=-PI/2)
-        self.add(axes)
+        bz_formula_tex = MathTex(r"\frac{2yk\lambda_I}{x^2+y^2}\mathrm{d}l")
+        bz_formula_tex.add_updater(lambda mob : self.rotate_to_face_camera(mob)) # make it always face the camera
+        self.add(axes, bz_formula_tex)
         self.add(x_label, y_label, z_label)
         self.set_camera_orientation(phi=65 * DEGREES, theta=45 * DEGREES)
         current_vecs_20 = []
@@ -204,7 +206,7 @@ class CoordTransFromStackToCirc(ThreeDScene):
         self.play(Create(yprime_proj), run_time=1)
         yprime_formula_str = r"y^\prime = \frac{\vec c \cdot \vec r}{|\vec c|}"
         yprime_formula = MathTex(yprime_formula_str).rotate(
-            PI / 2).move_to(yprime_text.get_right() + RIGHT)
+            PI / 2).move_to(yprime_text.get_right() + RIGHT * 2).scale(1.5)
         self.play(Write(yprime_formula), run_time=1)
         self.wait(1)
 
@@ -350,7 +352,7 @@ class SolenoidAmpLaw(ThreeDScene):
         electron_dots = [Dot3D(solenoid.get_start(), color=BLUE)
                          for _ in range(DOT_CNT)]
         electron_moving_anim = LaggedStart(
-            *[MoveAlongPath(electron_dots[i], solenoid)
+            *[MoveAlongPath(electron_dots[i], solenoid, run_time = DOT_TRAVEL_MAX_TM / 3)
               for i in range(DOT_CNT)],
             lag_ratio=(1/DOT_CNT), run_time=DOT_TRAVEL_MAX_TM
         )
@@ -482,8 +484,9 @@ class SolenoidAmpLaw(ThreeDScene):
         dn_int_text.remove_updater(dn_intseg_updater)
         self.play(dn_int_text.animate.next_to(int_segment, RIGHT, buff=.15))
         dn_int_text.remove(dn_intseg_updater)
+        self.remove(int_segment)
         self.wait(1)
-        
+    
         self.play(Indicate(cur_inc_0_txt), Indicate(lfrt_final_text))
         updn_final_text = MathTex(
             up_int_text.get_tex_string() + " + " + dn_int_text.get_tex_string() + " = 0"
@@ -535,6 +538,10 @@ class SolenoidAmpLaw(ThreeDScene):
         self.remove(*electron_dots)
         self.wait(1)
 
+        
+class CircularIntegration(ThreeDScene):
+    def construct(self):
+        return super().construct()
         
 class SolenoidInOutTest(ThreeDScene):
     def construct(self):
