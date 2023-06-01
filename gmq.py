@@ -7,8 +7,8 @@ class BiotSavart(ThreeDScene):
     """
     Demonstration of Biot-Savart Law
     """
-    def rotate_to_face_camera(self, object: Mobject):
-        return object.rotate(self.camera.get_phi(), axis = RIGHT).rotate(90 * DEGREES + self.camera.get_theta(), axis = OUT)
+    def face_camera(self, object: Mobject):
+        return helper.face_camera(object, self.camera.get_theta(), self.camera.get_phi())
 
     def magnetic_vec(self, current: Vector, observer: Vector):
         ret = Vector(direction = 3.0 * np.cross(current.get_end(), observer.get_end()) / (np.linalg.norm(observer.get_end()) ** 2), color = BLUE)
@@ -22,10 +22,10 @@ class BiotSavart(ThreeDScene):
         
         # demonstrate Biot-Savart Law
         current = Vector(direction = np.array([0, 0, 1]), color = YELLOW)
-        current_label = self.rotate_to_face_camera(MathTex(r'I\mathrm d\vec l', color = YELLOW)).next_to(current, DOWN)
+        current_label = self.face_camera(MathTex(r'I\mathrm d\vec l', color = YELLOW)).next_to(current, DOWN)
         observer = Vector(direction = np.array([2, 3, 0]), color = RED)
         magnetic = self.magnetic_vec(current, observer)
-        magnetic_label = self.rotate_to_face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
+        magnetic_label = self.face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
         self.play(Create(current), Write(current_label), Create(magnetic), Write(magnetic_label))
         self.wait(0.5)
         self.play(Create(observer))
@@ -152,9 +152,9 @@ class SolenoidSlice(ThreeDScene):
 
         ## script: Well in this case, it turns out that first integrating vertically then integrate the vertical pile of wires around a circle is simpler.
         ## script: Let's focus on one small section of the solenoid:
-        angle = -PI / 6
-        x = solenoid_radius * np.cos(angle)
-        y = solenoid_radius * np.sin(angle)
+        pile_azimuth = -PI / 6
+        x = solenoid_radius * np.cos(pile_azimuth)
+        y = solenoid_radius * np.sin(pile_azimuth)
         line_pile: Sequence[Line] = []
         animations = []
         for v in range(len(surface.v_curves)):
@@ -175,7 +175,7 @@ class SolenoidSlice(ThreeDScene):
         # animate a line to indicate the radius of solenoid
         alpha_vec = Arrow3D(start = dot.get_center(), end = [x, y, 0], color = RED)
         alpha_vec_label = self.face_camera(
-            MathTex(r'\vec\alpha=\begin{bmatrix}x\\y\\0\end{bmatrix}', color = RED)
+            MathTex(r'\vec\alpha', color = RED)
         ).next_to(alpha_vec, LEFT + UP)
         self.play(Create(alpha_vec), Write(alpha_vec_label))
         self.wait(2)
@@ -200,15 +200,83 @@ class SolenoidSlice(ThreeDScene):
         self.play(Uncreate(alpha_vec), Unwrite(alpha_vec_label))
         self.wait(1)
 
-        # move camera to face the line pile
-        cam_phi, cam_theta, _, _, _ = self.camera.get_value_trackers()
-        dot_label.generate_target()
-        dot_label.target = MathTex(r'O', color = RED).rotate(angle).rotate(PI / 2, axis = np.array([x, y, 0])).next_to(dot, IN)
+        # rotate the axes to let the current flow along x axis
+        line_pile_index = 25
+        line_pile_center = surface.u_curves[line_pile_index].get_center()
+        line_pile_dir = surface.u_curves[line_pile_index].get_start() - surface.u_curves[line_pile_index].get_end()
+        line_pile_angle = np.arctan(line_pile_dir[1] / line_pile_dir[0]) + PI
+        self.play(axes.animate.rotate(line_pile_angle))
+        self.wait(2)
+
+        # demonstrate the cross product of $Idl$ and $r$
+        current = Arrow3D(start = line_pile_center, end = line_pile_center + line_pile_dir * 8, color = YELLOW)
+        current_label = self.face_camera(MathTex(r'I\mathrm d\vec l=\begin{bmatrix}I\\0\\0\end{bmatrix}\mathrm dl', color = YELLOW)).next_to(current, DOWN + IN)
+        self.play(Create(current), Write(current_label))
+        self.wait(1)
+        r_vec = Arrow3D(start = line_pile_center, end = [0, 0, 0], color = RED)
+        r_vec_label = self.face_camera(MathTex(r'\vec r=\begin{bmatrix}-x\\-y\\-z\end{bmatrix}', color = RED)).next_to(r_vec, LEFT + UP)
+        self.play(Create(r_vec), Write(r_vec_label))
+        self.wait(3)
+
+        km = 2.0
+        magnetic = Arrow3D(start = [0, 0, 0], end = np.cross(current.get_end() - current.get_start(), r_vec.get_end() - r_vec.get_start()) * km, color = BLUE)
+        magnetic_label = self.face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP + IN)
+        self.play(Create(magnetic), Write(magnetic_label))
+        self.wait(1)
+
+        # write out the formula of  $Idl \times r$
+        formula = self.face_camera(MathTex(
+            r'&I\mathrm d\vec l', r'\times', r'\vec r\\',
+            r'& =', r'\begin{bmatrix}I\\0\\0\end{bmatrix}\mathrm dl', r'\times', r'\begin{bmatrix}-x\\-y\\-z\end{bmatrix}',
+            r'\\& =', r'\begin{bmatrix}0\\-Iz\\-Iy\end{bmatrix}', r'\mathrm dl'
+        ).shift([3.3, -4, 1.6]))
+        formula[0].set_color(YELLOW)
+        formula[2].set_color(RED)
+        formula[4].set_color(YELLOW)
+        formula[6].set_color(RED)
+        formula[8].set_color(BLUE)
         self.play(
-            cam_phi.animate.set_value(90 * DEGREES),
-            cam_theta.animate.set_value(-90 * DEGREES + angle),
-            MoveToTarget(dot_label)
+            ReplacementTransform(current_label.copy(), formula[0]),
+            Write(formula[1]),
+            ReplacementTransform(r_vec_label.copy(), formula[2]),
         )
+        self.wait(2)
+        self.play(Write(formula[3]))
+        self.play(
+            ReplacementTransform(current_label.copy(), formula[4]),
+            Write(formula[5]),
+            ReplacementTransform(r_vec_label.copy(), formula[6]),
+        )
+        self.wait(3)
+        self.play(Write(formula[7:]))
+        self.wait(2)
+        self.play(Indicate(formula[8]))
+        self.wait(2)
+        self.play(Unwrite(formula))
+        self.wait(1)
+
+        # move camera around to show the 3D relationships between two vectors
+        cam_phi, cam_theta, _, _, _ = self.camera.get_value_trackers()
+        new_theta = line_pile_angle - 90 * DEGREES
+        new_phi = 75 * DEGREES
+        dot_label.add_updater(lambda m: m.become(self.face_camera(MathTex(r'O', color = RED)).next_to(dot, IN)))
+        current_label.add_updater(lambda m: m.become(self.face_camera(MathTex(r'I\mathrm d\vec l', color = YELLOW)).next_to(current, DOWN + IN)))
+        r_vec_label.add_updater(lambda m: m.become(self.face_camera(MathTex(r'\vec r', color = RED)).next_to(r_vec, LEFT + UP)))
+        magnetic_label.add_updater(lambda m: m.become(self.face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP + IN)))
+        self.play(
+            cam_phi.animate.set_value(new_phi),
+            cam_theta.animate.set_value(new_theta)
+        )
+        self.wait(2)
+        
+        new_theta = line_pile_angle
+        new_phi = 90 * DEGREES
+        self.play(
+            cam_phi.animate.set_value(new_phi),
+            cam_theta.animate.set_value(new_theta)
+        )
+        self.wait(2)
+        self.play(Unwrite(current_label), Unwrite(r_vec_label), Unwrite(magnetic_label))
 
         cross_symbol_pile: Sequence[VGroup] = []
         for line in surface.u_curves:
@@ -219,14 +287,10 @@ class SolenoidSlice(ThreeDScene):
         # animation of changing every short line to a cross symbol
         for i in range(len(line_pile)):
             animations.append(Transform(surface.u_curves[i], cross_symbol_pile[i]))
-        self.play(*animations)
+        self.play(*animations, FadeOut(current))
         self.wait(2)
 
-        # demonstrate the cross product of $Idl$ and $r$
-        line_pile_index = 25
-        # TODO
-
-        self.play(FadeOut(dot_label), FadeOut(dot), FadeOut(axes), *[FadeOut(symbol) for symbol in surface.u_curves])
+        self.play(FadeOut(dot_label), FadeOut(dot), FadeOut(r_vec), FadeOut(magnetic), FadeOut(axes), *[FadeOut(symbol) for symbol in surface.u_curves])
 
 class IntegrateSlice(Scene):
     def cross_symbol(self, x: float, y: float, size = 0.2, color: str = WHITE):
@@ -277,108 +341,16 @@ class IntegrateSlice(Scene):
             r'\over',
             r'r^2}'
         )
-        biot_savart.target[0].set_color(BLUE)
-        biot_savart.target[2].set_color(YELLOW)
-        biot_savart.target[5].set_color(RED); biot_savart.target[7].set_color(RED)
-        biot_savart.target.to_corner(UL)
-        self.play(MoveToTarget(biot_savart))
-        self.wait(3)
-
-        # demonstrate the current density
-        brace = BraceBetweenPoints([solenoid_radius, 0, 0], [solenoid_radius, 1.0, 0])
-        brace_label_1 = DecimalNumber(1.0, num_decimal_places = 1, color = YELLOW).next_to(brace, RIGHT)
-        brace_label_2 = MathTex(r'\lambda_I', color = YELLOW).next_to(brace_label_1, RIGHT)
-        self.play(GrowFromCenter(brace), Write(brace_label_1), Write(brace_label_2))
-        def brace_1_updater(b):
-            b.next_to(brace, RIGHT)
-            b.set_value(np.linalg.norm(brace.get_top() - brace.get_bottom()))
-        brace_label_1.add_updater(brace_1_updater)
-        brace_label_2.add_updater(lambda m: m.next_to(brace_label_1, RIGHT))
-        brace.generate_target()
-        brace.target = BraceBetweenPoints([solenoid_radius, 0, 0], [solenoid_radius, 2.0, 0])
-        self.play(MoveToTarget(brace))
-        brace.generate_target()
-        brace.target = BraceBetweenPoints([solenoid_radius, 0, 0], [solenoid_radius, 3.0, 0])
-        self.play(MoveToTarget(brace))
-        self.wait(1)
-        brace_label_1.remove_updater(brace_1_updater)
-        self.play(Uncreate(brace), Unwrite(brace_label_1), Unwrite(brace_label_2))
-        self.wait(3)
-
-        ## We can decompose the magnetic field into two components:
-        r_vec = Vector([-solenoid_radius, 1.25, 0], color = RED).shift([solenoid_radius, -1.25, 0])
-        r_vec_label = MathTex(r'\vec r', color = RED).next_to(r_vec, RIGHT)
-        r_vec_label.add_updater(lambda m: m.next_to(r_vec, RIGHT))
-        self.play(Create(r_vec), Write(r_vec_label))
-        k = 3.5
-        magnetic = Vector(k * np.cross(np.array([0, 0, -1]), r_vec.get_vector()) / np.linalg.norm(r_vec.get_vector()) ** 3, color = BLUE)
-        magnetic.add_updater(lambda v: v.become(Vector(k * np.cross(np.array([0, 0, -1]), r_vec.get_vector()) / np.linalg.norm(r_vec.get_vector()) ** 3, color = BLUE)))
-        magnetic_label = MathTex(r'\mathrm d\vec B', color = BLUE).next_to(magnetic, UP)
-        magnetic_label.add_updater(lambda m: m.next_to(magnetic, UP))
-        magnetic_z = Line([0, 0, 0], [0, magnetic.get_vector()[1], 0], color = BLUE)
-        magnetic_z.add_updater(lambda v: v.become(Line([0, 0, 0], [0, magnetic.get_vector()[1], 0], color = BLUE)))
-        magnetic_z_label = MathTex(r'\mathrm dB_z', color = BLUE).next_to(magnetic_z, LEFT)
-        magnetic_z_label.add_updater(lambda m: m.next_to(magnetic_z, LEFT))
-        self.play(Create(magnetic), Write(magnetic_label))
-        self.wait(1)
-        self.play(Create(magnetic_z), Write(magnetic_z_label))
-
-        r_vec.generate_target()
-        r_vec.target = Vector([-solenoid_radius, 0, 0], color = RED).shift([solenoid_radius, 0, 0])
-        self.play(MoveToTarget(r_vec))
-
-        r_vec.generate_target()
-        r_vec.target = Vector([-solenoid_radius, -1.25, 0], color = RED).shift([solenoid_radius, 1.25, 0])
-        self.remove(magnetic_z_label)
-        magnetic_z_label = MathTex(r'\mathrm dB_z', color = BLUE).next_to(magnetic_z, RIGHT)
-        magnetic_z_label.add_updater(lambda m: m.next_to(magnetic_z, RIGHT))
-        self.add(magnetic_z_label)
-        self.play(MoveToTarget(r_vec))
-        self.wait(3)
-        
-        magnetic_z_label.clear_updaters()
-        magnetic_z_label.generate_target()
-        magnetic_z_label.target = MathTex(r'\mathrm dB_z', color = BLUE).next_to(magnetic_z, LEFT)
-        self.play(MoveToTarget(magnetic_z_label), Uncreate(magnetic), Uncreate(magnetic_label))
 
         ## script: Let's first focus on the $\alpha$ component of magnetic field.
         # TODO: prove that the alpha component is zero
 
         ## script: Now, let's focus on the $z$ component of magnetic field.
-        angle = Angle(axes.x_axis, Line(r_vec.get_end(), r_vec.get_start()), radius = 0.5)
-        angle_label = MathTex(r'\theta').next_to(angle, RIGHT).shift(0.2 * UP)
-        self.play(Create(angle), Write(angle_label))
-        self.wait(1)
-        biot_savart_target = MathTex(
-            r'\mathrm dB_z',
-            r' = \frac{\mu_0}{4\pi}',
-            r'{\lambda_I\mathrm dz', r'\mathrm dl',
-            r'\over',
-            r'r^2}', r'\cdot\cos\theta'
-        ).to_corner(UL)
-        biot_savart_target[0].set_color(BLUE)
-        biot_savart_target[2].set_color(YELLOW)
-        biot_savart_target[5].set_color(RED)
-        self.play(TransformMatchingTex(biot_savart, biot_savart_target))
-        self.wait(2)
 
-        r_vec_label.clear_updaters()
-        r_vec_label.generate_target()
-        r_vec_label.target = MathTex(r'\vec r', color = RED).next_to(r_vec, UP)
-        self.play(Uncreate(magnetic_z), Uncreate(magnetic_z_label), MoveToTarget(r_vec_label))
-        self.wait(3)
-
-        ## script: Remember: the rdistance from wire pile to the observation point $\alpha$ and the vertical distance is $z$.
-        alpha_brace = BraceBetweenPoints([0, 0, 0], [solenoid_radius, 0, 0], DOWN)
-        alpha_brace_label = MathTex(r'\alpha').next_to(alpha_brace, DOWN)
-        self.play(Create(alpha_brace), Write(alpha_brace_label))
-        z_brace = BraceBetweenPoints([solenoid_radius, 0, 0], r_vec.get_start(), RIGHT)
-        z_brace_label = MathTex(r'z').next_to(z_brace, RIGHT)
-        self.play(Create(z_brace), Write(z_brace_label))
-        self.wait(1)
+        ## script: Remember: the distance from wire pile to the observation point $\alpha$ and the vertical distance is $z$.
 
         ## script: Replace $\cos\theta$ with $\frac{\alpha}{\sqrt{\alpha^2 + z^2}}$
-        r_equation = MathTex(r'r', r' = \sqrt{\alpha^2 + z^2}').next_to(biot_savart_target, DOWN)
+        r_equation = MathTex(r'r', r' = \sqrt{\alpha^2 + z^2}').next_to(biot_savart, DOWN)
         r_equation[0].set_color(RED)
         cos_equation = MathTex(r'\cos\theta', r' = \frac{\alpha}{\sqrt{\alpha^2 + z^2}}').next_to(r_equation, DOWN)
         self.play(Write(r_equation))
@@ -390,8 +362,7 @@ class IntegrateSlice(Scene):
         ).to_corner(UL)
         formula[0].set_color(BLUE)
         self.play(
-            ReplacementTransform(VGroup(biot_savart_target, r_equation, cos_equation), formula),
-            Uncreate(angle), Unwrite(angle_label),
+            ReplacementTransform(VGroup(biot_savart, r_equation, cos_equation), formula),
         )
         self.wait(2)
         formula.generate_target()
@@ -404,9 +375,7 @@ class IntegrateSlice(Scene):
         self.play(MoveToTarget(formula))
         self.wait(4)
         self.play(
-            Uncreate(alpha_brace), Unwrite(alpha_brace_label),
-            Uncreate(z_brace), Unwrite(z_brace_label),
-            Uncreate(r_vec), Uncreate(r_vec_label),
+            #* Uncreate every graphics object
             Uncreate(observe_point), Unwrite(observe_point_label),
             *[Uncreate(symbol) for symbol in cross_symbol_pile],
             Uncreate(axes), Uncreate(axes_labels),
@@ -577,7 +546,7 @@ class IntegrateSlice(Scene):
         formula_target = MathTex(
             r'\frac{\mu_0}{4\pi}\frac{\lambda_I}{\alpha}',
             r'\sin\theta',
-            r'\huge\mid_{-\frac\pi 2}^{+\frac\pi 2}',
+            r'\Big |_{-\frac\pi 2}^{+\frac\pi 2}',
         )
         formula_target[2].set_color(YELLOW)
         self.play(
@@ -600,3 +569,11 @@ class IntegrateSlice(Scene):
         formula_target = MathTex(r'\frac{\mu_0}{2\pi}\frac{\lambda_I}{\alpha}')
         self.play(Transform(formula, formula_target))
         self.wait(2)
+
+        formula_target = MathTex(
+            r'& \int_{-\infty}^{+\infty}\frac{\mu_0}{4\pi}\frac{\lambda_I\alpha}{(\alpha^2+z^2)^{\frac 32}}\mathrm dz \\',
+            r'= & \frac{\mu_0}{4\pi}\lambda_I\alpha\int_{-\infty}^{\infty}\frac{1}{(\alpha^2+z^2)^{\frac 32}}\mathrm dz \\',
+            r'= & \frac{\mu_0}{4\pi}\lambda_I\alpha\int_{-\frac \pi 2}{+\frac \pi 2}\frac{1}{[\alpha^2(1+\tan^2\theta)]^{\frac 32}}\sec^2\theta\mathrm d\theta \\',
+            r'= & \frac{\mu_0}{4\pi}\lambda_I\alpha\int_{-\frac \pi 2}{+\frac \pi 2}\frac{\alpha\sec^2\theta}{\alpha^3\sec^3\theta}\mathrm d\theta \\',
+        )
+        # TODO
