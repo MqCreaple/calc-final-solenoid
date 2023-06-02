@@ -491,9 +491,7 @@ Now we can simplify the expression by eliminating the $\tan\theta$ at the top. S
 $$
 \begin{align*}
 -(1+\tan^2\frac{\theta}{2})+s &= 1 - \tan^2\frac{\theta}{2}\\
-
 s &= 1 - \cancel{\tan^2\frac{\theta}{2}} + 1 +\cancel{\tan^2\frac{\theta}{2}}\\
-
 &= 2
 \end{align*}
 $$
@@ -504,7 +502,6 @@ $$
 \begin{align*}
 \cos\theta
 &= \frac{2-(1+\tan^2\frac{\theta}{2})}{1+\tan^2\frac{\theta}{2}}\\
-
 &= \frac{2}{1+\tan^2\frac{\theta}{2}} -1
 \end{align*}
 $$
