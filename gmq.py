@@ -371,7 +371,7 @@ class IntegrateSlice(Scene):
         formula.target = MathTex(
             r'\mathrm d\vec B',
             r' = \frac{\mu_0}{4\pi}',
-            r'{\begin{bmatrix}\lambda_I\\0\\0\end{bmatrix}\mathrm dz', r'\mathrm d\vec l', r'\times', r'\begin{bmatrix}-x\\-y\\-z\end{bmatrix}',
+            r'{\begin{bmatrix}\lambda_I\\0\\0\end{bmatrix}\mathrm dz', r'\mathrm dl', r'\times', r'\begin{bmatrix}-x\\-y\\-z\end{bmatrix}',
             r'\over',
             r'(x^2+y^2+z^2)^{\frac 32}}'
         ).to_corner(UL)
@@ -384,7 +384,7 @@ class IntegrateSlice(Scene):
         formula_target = MathTex(
             r'\mathrm d\vec B',
             r' = \frac{\mu_0}{4\pi}',
-            r'{\begin{bmatrix}0\\ \lambda_Iz \\ \lambda_Iy \end{bmatrix}\mathrm dz' r'\mathrm d\vec l',
+            r'{\begin{bmatrix}0\\ \lambda_Iz \\ \lambda_Iy \end{bmatrix}\mathrm dz', r'\mathrm dl',
             r'\over',
             r'(x^2+y^2+z^2)^{\frac 32}}'
         ).to_corner(UL)
@@ -392,29 +392,37 @@ class IntegrateSlice(Scene):
         self.play(
             ReplacementTransform(formula[0], formula_target[0]),
             ReplacementTransform(formula[1], formula_target[1]),
-            ReplacementTransform(formula[2:6], formula_target[2]),
-            ReplacementTransform(formula[6], formula_target[3]),
-            ReplacementTransform(formula[7], formula_target[4]),
+            ReplacementTransform(VGroup(formula[2], formula[4:6]), formula_target[2]),
+            ReplacementTransform(formula[3], formula_target[3]),
+            ReplacementTransform(formula[6], formula_target[4]),
+            ReplacementTransform(formula[7], formula_target[5]),
         )
         formula = formula_target
         self.wait(4)
 
-        formula2 = MathTex(
+        formula_y = MathTex(
             r'\mathrm dB_y',
-            r'=', r'\frac{\mu_0}{4\pi}\frac{\lambda_Iz}{(x^2+y^2+z^2)^{\frac 32}}',
-            r'\mathrm dz', r'\mathrm dl\\',
+            r'=\frac{\mu_0}{4\pi}', r'{\lambda_Iz', r'\over', r'(x^2+y^2+z^2)^{\frac 32}}',
+            r'\mathrm dz', r'\mathrm dl',
         ).to_corner(UL)
-        formula.generate_target()
-        formula.target = MathTex(
+        formula_z = MathTex(
             r'\mathrm dB_z',
-            r'=', r'\frac{\mu_0}{4\pi}\frac{\lambda_Iy}{(x^2+y^2+z^2)^{\frac 32}}',
+            r'=\frac{\mu_0}{4\pi}', r'{\lambda_Iy', r'\over', r'(x^2+y^2+z^2)^{\frac 32}}',
             r'\mathrm dz', r'\mathrm dl'
-        ).next_to(formula2, DOWN)
-        formula2[0].set_color(BLUE)
-        formula.target[0].set_color(BLUE)
-        self.play(Write(formula2), MoveToTarget(formula))
+        ).next_to(formula_y, DOWN)
+        formula_y[0].set_color(BLUE)
+        formula_z[0].set_color(BLUE)
+        self.play(
+            ReplacementTransform(formula[0], VGroup(formula_y[0], formula_z[0])),
+            ReplacementTransform(formula[1], VGroup(formula_y[1], formula_z[1])),
+            ReplacementTransform(formula[2], VGroup(formula_y[2], formula_y[5], formula_z[2], formula_z[5])),
+            ReplacementTransform(formula[4], VGroup(formula_y[3], formula_z[3])),
+            ReplacementTransform(formula[3], VGroup(formula_y[6], formula_z[6])),
+            ReplacementTransform(formula[5], VGroup(formula_y[4], formula_z[4]))
+        )
         self.wait(2)
-        self.play(Uncreate(formula2), formula.animate.to_corner(UL))
+        self.play(Uncreate(formula_y), formula_z.animate.to_corner(UL))
+        formula = formula_z
         self.wait(3)
         self.play(
             #* Uncreate every graphics object
@@ -432,7 +440,7 @@ class IntegrateSlice(Scene):
             r'B_z', r'=',
             r'\oint_{\text{circle}}',
             r'\int_{-\infty}^{+\infty}',
-            r'\frac{\mu_0}{4\pi}\frac{\lambda_I\alpha}{(\alpha^2+z^2)^{\frac 32}}',
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I y}{(x^2+y^2+z^2)^{\frac 32}}',
             r'\mathrm dz', r'\mathrm dl',
         )
         formula_target[0].set_color(BLUE)
@@ -447,7 +455,7 @@ class IntegrateSlice(Scene):
         ## script: Now, let's integrate the vertical component first.
         formula_target = MathTex(
             r'\int_{-\infty}^{+\infty}',
-            r'\frac{\mu_0}{4\pi}\frac{\lambda_I\alpha}{(\alpha^2+z^2)^{\frac 32}}',
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I y}{(x^2+y^2+z^2)^{\frac 32}}',
             r'\mathrm dz'
         )
         formula_target[0].set_color(YELLOW)
@@ -458,9 +466,9 @@ class IntegrateSlice(Scene):
 
         ## script: To solve this, first pull out all the constants:
         formula_target = MathTex(
-            r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
+            r'\frac{\mu_0}{4\pi}\lambda_I y',
             r'\int_{-\infty}^{+\infty}',
-            r'\frac{1}{(\alpha^2+z^2)^{\frac 32}}',
+            r'\frac{1}{(x^2+y^2+z^2)^{\frac 32}}',
             r'\mathrm dz'
         )
         formula_target[1].set_color(YELLOW)
@@ -469,30 +477,45 @@ class IntegrateSlice(Scene):
         formula = formula_target
         self.wait(3)
 
-        ## script: Note that the core of this integral is the $(\alpha^2 + z^2)^{3/2}$ piece:
+        ## script: Note that the core of this integral is the $(x^2 + y^2 + z^2)^{3/2}$ piece:
         self.play(FocusOn(formula_target[2]))
         self.wait(5)
 
+        ## script: For simplicity, let's denote $x^2+y^2$ as $\alpha^2$.
         ## script: Since $z$ is the integral variable and $\alpha$ is a constant, we can use a trig substitution
         ## script: for expression of the form $\alpha^2 + z^2$.
-        z_sub = MathTex(r'z', r'=', r'\alpha\tan\theta').next_to(formula, DOWN)
+        alpha_sub = MathTex(r'\alpha^2', r'=', r'x^2+y^2').next_to(formula, DOWN)
+        self.play(Write(alpha_sub))
+        self.wait(2)
+        formula_target = MathTex(
+            r'\frac{\mu_0}{4\pi}\lambda_I y',
+            r'\int_{-\infty}^{+\infty}',
+            r'\frac{1}{(\alpha^2+z^2)^{\frac 32}}',
+            r'\mathrm dz'
+        )
+        formula_target[1].set_color(YELLOW)
+        formula_target[3].set_color(YELLOW)
+        self.play(Transform(formula, formula_target))
+        self.wait(2)
+
+        z_sub = MathTex(r'z', r'=', r'\alpha\tan\theta').next_to(alpha_sub, DOWN)
         self.play(Write(z_sub))
         self.wait(2)
 
         formula_target = MathTex(
-            r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
+            r'\frac{\mu_0}{4\pi}\lambda_I y',
             r'\int_{-\infty}^{+\infty}',
             r'{1', r'\over', r'[\alpha^2(1 + \tan^2\theta)]^{\frac 32}}',
             r'\mathrm d(\alpha\tan\theta)'
         )
         formula_target[1].set_color(YELLOW)
         formula_target[5].set_color(YELLOW)
-        self.play(Transform(formula, formula_target), Unwrite(z_sub))
+        self.play(Transform(formula, formula_target), Unwrite(z_sub), Unwrite(alpha_sub))
         self.wait(2)
 
         ## script: Now, let's differentiate the $\alpha\tan\theta$. Remember to change the bound of integration.
         formula_target = MathTex(
-            r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
+            r'\frac{\mu_0}{4\pi}\lambda_I y',
             r'\int_{-\frac\pi 2}^{+\frac\pi 2}',
             r'{1', r'\over', r'[\alpha^2(1 + \tan^2\theta)]^{\frac 32}}',
             r'\alpha\sec^2\theta',
@@ -513,7 +536,7 @@ class IntegrateSlice(Scene):
 
         ## script: Now simplify the expression.
         formula_target = MathTex(
-            r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
+            r'\frac{\mu_0}{4\pi}\lambda_I y',
             r'\int_{-\frac\pi 2}^{+\frac\pi 2}',
             r'{\alpha\sec^2\theta', r'\over', r'(\alpha^2\sec^2\theta)^{\frac 32}}}',
             r'\mathrm d\theta',
@@ -533,7 +556,7 @@ class IntegrateSlice(Scene):
 
         ## script: then simplify the denomenator:
         formula_target = MathTex(
-            r'\frac{\mu_0}{4\pi}\lambda_I\alpha',
+            r'\frac{\mu_0}{4\pi}\lambda_I y',
             r'\int_{-\frac\pi 2}^{+\frac\pi 2}',
             r'{\alpha\sec^2\theta', r'\over', r'\alpha^3\sec^3\theta}}',
             r'\mathrm d\theta',
@@ -551,7 +574,7 @@ class IntegrateSlice(Scene):
         self.wait(3)
 
         formula_target = MathTex(
-            r'\frac{\mu_0}{4\pi}\frac{\lambda_I}{\alpha}',
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I y}{\alpha^2}',
             r'\int_{-\frac\pi 2}^{+\frac\pi 2}',
             r'{1', r'\over', r'\sec\theta}',
             r'\mathrm d\theta',
@@ -568,7 +591,7 @@ class IntegrateSlice(Scene):
         )
         self.wait(3)
         formula_target = MathTex(
-            r'\frac{\mu_0}{4\pi}\frac{\lambda_I}{\alpha}',
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I y}{x^2+y^2}',
             r'\int_{-\frac\pi 2}^{+\frac\pi 2}',
             r'\cos\theta',
             r'\mathrm d\theta',
@@ -586,7 +609,7 @@ class IntegrateSlice(Scene):
 
         ## script: Integrating $\cos\theta$ is straightforward:
         formula_target = MathTex(
-            r'\frac{\mu_0}{4\pi}\frac{\lambda_I}{\alpha}',
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I y}{x^2+y^2}',
             r'\sin\theta',
             r'\Big |_{-\frac\pi 2}^{+\frac\pi 2}',
         )
@@ -599,7 +622,7 @@ class IntegrateSlice(Scene):
         formula = formula_target
         self.wait(3)
         formula_target = MathTex(
-            r'\frac{\mu_0}{4\pi}\frac{\lambda_I}{\alpha}',
+            r'\frac{\mu_0}{4\pi}\frac{\lambda_I y}{x^2+y^2}',
             r'\cdot 2'
         )
         self.play(
@@ -608,14 +631,242 @@ class IntegrateSlice(Scene):
         )
         formula = formula_target
         self.wait(3)
-        formula_target = MathTex(r'\frac{\mu_0}{2\pi}\frac{\lambda_I}{\alpha}')
+        formula_target = MathTex(r'\frac{\mu_0}{2\pi}\frac{\lambda_I y}{x^2+y^2}')
+        self.play(Transform(formula, formula_target))
+        self.wait(3)
+
+        formula_target_1 = MathTex(
+            r'& \frac{\mathrm dB_z}{\mathrm dl}\\',
+            r'=& \int_{-\infty}^{\infty}\frac{\mu_0}{4\pi}\frac{\lambda_I y}{(x^2+y^2+z^2)^{\frac 32}}\mathrm dz\\',
+            r'=& \frac{\mu_0}{4\pi}\lambda_Iy \int_{-\infty}^{\infty}\frac{1}{(x^2+y^2+z^2)^{\frac 32}}\mathrm dz\\',
+            r'\stackrel{\alpha^2=x^2+y^2}{=}& \frac{\mu_0}{2\pi}\lambda_Iy \int_{-\infty}^{\infty}\frac{1}{[\alpha^2(1+\tan^2\theta)]^{\frac 32}}\mathrm d(\alpha\tan\theta)\\',
+            r'=& \frac{\mu_0}{4\pi}\lambda_Iy \int_{-frac{\pi}{2}}^{+\frac{\pi}{2}}\frac{\alpha\sec^2\theta}{(\alpha^2\sec^2\theta)^{\frac 32}}\mathrm d\theta\\',
+        ).scale(0.75).to_edge(LEFT)
+        formula_target_2 = MathTex(
+            r'=& \frac{\mu_0}{4\pi}\lambda_Iy \int_{-frac{\pi}{2}}^{+\frac{\pi}{2}}\frac{\alpha\sec^2\theta}{\alpha^3\sec^3\theta}\mathrm d\theta\\',
+            r'=& \frac{\mu_0}{4\pi}\frac{\lambda_Iy}{\alpha^2} \int_{-\frac{\pi}{2}}^{+\frac{\pi}{2}}\frac{1}{\sec\theta}\mathrm d\theta\\',
+            r'=& \frac{\mu_0}{4\pi}\frac{\lambda_Iy}{x^2+y^2} \int_{-\frac{\pi}{2}}^{+\frac{\pi}{2}}\cos\theta\mathrm d\theta\\',
+            r'=& \frac{\mu_0}{4\pi}\frac{\lambda_Iy}{x^2+y^2} \sin\theta\Big |_{-\frac{\pi}{2}}^{+\frac{\pi}{2}}\\',
+            r'=&', r'\frac{\mu_0}{2\pi}\frac{\lambda_Iy}{x^2+y^2}\\',
+        ).scale(0.75).to_edge(RIGHT)
+        self.play(Write(formula_target_1), Write(formula_target_2[:-1]), TransformMatchingShapes(formula, formula_target_2[-1]), run_time = 3)
+        formula = formula_target
+        self.wait(3)
+        self.play(Unwrite(formula_target_1), Unwrite(formula_target_2))
+
+class Final(Scene):
+    def construct(self):
+        prompt = Text("Solve: ").set_color(YELLOW)
+        prompt_formula = MathTex(
+            r'\int_0^{2\pi}',
+            r'{1-\beta', r'\cos\theta', r'\over', r'\beta^2-2\beta', r'\cos\theta', r'+1}',
+            r'\mathrm d\theta'
+        )
+        VGroup(prompt, prompt_formula).arrange(RIGHT)
+        self.play(Write(prompt), Write(prompt_formula))
+        self.play(VGroup(prompt, prompt_formula).animate.to_edge(UP))
+        self.play(prompt_formula.animate.set_color(YELLOW))
+        self.wait(2)
+        self.play(Indicate(prompt_formula[2], color = RED), Indicate(prompt_formula[5], color = RED))
+        self.wait(2)
+
+        formula = MathTex(
+            r'{\frac 12(\beta^2-2\beta\cos\theta+1)', r'+', r'\frac{1-\beta^2}{2}', r'\over', r'\beta^2-2\beta', r'\cos\theta', r'+1}'
+        )
+        self.play(
+            ReplacementTransform(prompt_formula[1:3].copy(), formula[0:3]),
+            ReplacementTransform(prompt_formula[3].copy(), formula[3]),
+            ReplacementTransform(prompt_formula[4].copy(), formula[4]),
+            ReplacementTransform(prompt_formula[5].copy(), formula[5]),
+            ReplacementTransform(prompt_formula[6].copy(), formula[6]),
+        )
+        self.wait(2)
+        formula_target = MathTex(
+            r'\int_0^{2\pi}',
+            r'\frac 12', r'+', r'{\frac{1-\beta^2}{2}', r'\over', r'\beta^2-2\beta', r'\cos\theta', r'+1}',
+            r'\mathrm d\theta'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[1]),
+            ReplacementTransform(formula[1], formula_target[2]),
+            ReplacementTransform(formula[2], formula_target[3]),
+            ReplacementTransform(formula[3], formula_target[4]),
+            ReplacementTransform(formula[4], formula_target[5]),
+            ReplacementTransform(formula[5], formula_target[6]),
+            ReplacementTransform(formula[6], formula_target[7]),
+        )
+        self.wait(2)
+        self.play(
+            ReplacementTransform(prompt_formula[0].copy(), formula_target[0]),
+            ReplacementTransform(prompt_formula[7].copy(), formula_target[8]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\frac 12\cdot 2\pi+',
+            r'\int_0^{2\pi}',
+            r'\frac{1-\beta^2}{2}',
+            r'{1', r'\over', r'\beta^2-2\beta\cos\theta+1}',
+            r'\mathrm d\theta'
+        )
+        self.play(
+            ReplacementTransform(formula[1:3], formula_target[0]),
+            ReplacementTransform(formula[0], formula_target[1]),
+            ReplacementTransform(formula[3], formula_target[2]),
+            ReplacementTransform(formula[4], formula_target[3:5]),
+            TransformMatchingShapes(formula[5:8], formula_target[5]),
+            ReplacementTransform(formula[8], formula_target[6]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\pi+',
+            r'\frac{1-\beta^2}{2}',
+            r'\int_0^{2\pi}',
+            r'{1', r'\over', r'\beta^2-2\beta', r'\cos\theta', r'+1}',
+            r'\mathrm d\theta'
+        )
+        self.play(TransformMatchingTex(formula, formula_target))
+        formula = formula_target
+        self.wait(2)
+
+        prompt.generate_target()
+        prompt_formula.generate_target()
+        prompt_formula.target = formula.copy()
+        prompt_formula.target[2:].set_color(YELLOW)
+        VGroup(prompt_formula.target[0:2], prompt.target, prompt_formula.target[2:]).arrange(RIGHT).to_edge(UP)
+        self.play(MoveToTarget(prompt), FadeOut(prompt_formula), ReplacementTransform(formula.copy(), prompt_formula.target))
+        prompt_formula = prompt_formula.target
+        self.wait(2)
+
+        formula_target = formula[2:].copy().center()
+        self.play(Unwrite(formula[0:2]), ReplacementTransform(formula[2:], formula_target))
+        formula = formula_target
+        self.wait(5)
+
+        cos_to_tan_formula = MathTex(
+            r'\cos\theta', r'=',
+            r'{2', r'\over', r'1+\tan^2{\frac{\theta}{2}}}', r'-', r'1'
+        ).next_to(formula, DOWN)
+        cos_to_tan_formula[0].set_color(RED)
+        self.play(Write(cos_to_tan_formula), formula[4].animate.set_color(RED))
+        self.wait(2)
+        formula_target = MathTex(
+            r'\int_0^{2\pi}',
+            r'{1', r'\over', r'\beta^2', r'-2\beta', r'\left(\frac{2}{1+\tan^2\frac{\theta}{2}}-1\right)', r'+1}',
+            r'\mathrm d\theta'
+        )
+        self.play(Transform(formula, formula_target))
+        self.wait(1)
+
+        self.play(Unwrite(cos_to_tan_formula))
+        formula_target = MathTex(
+            r'\int_0^{2\pi}',
+            r'{1', r'\over', r'\beta^2', r'-\frac{4\beta}{1+\tan^2\frac{\theta}{2}}', r'+2\beta', r'+1}',
+            r'\mathrm d\theta'
+        )
+        self.wait(1)
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            ReplacementTransform(formula[3], formula_target[3]),
+            ReplacementTransform(formula[4:6], formula_target[4:6]),
+            ReplacementTransform(formula[6], formula_target[6]),
+            ReplacementTransform(formula[7], formula_target[7]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_0^{2\pi}',
+            r'{1', r'\over', r'(\beta^2+2\beta+1)', r'-\frac{4\beta}{1+\tan^2\frac{\theta}{2}}}',
+            r'\mathrm d\theta'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            TransformMatchingShapes(VGroup(formula[3], formula[5:7]), formula_target[3]),
+            ReplacementTransform(formula[4], formula_target[4]),
+            ReplacementTransform(formula[7], formula_target[5]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_0^{2\pi}',
+            r'{1', r'\over', r'(\beta+1)^2', r'-\frac{4\beta}{1+\tan^2\frac{\theta}{2}}}',
+            r'\mathrm d\theta'
+        )
         self.play(Transform(formula, formula_target))
         self.wait(2)
 
         formula_target = MathTex(
-            r'& \int_{-\infty}^{+\infty}\frac{\mu_0}{4\pi}\frac{\lambda_I\alpha}{(\alpha^2+z^2)^{\frac 32}}\mathrm dz \\',
-            r'= & \frac{\mu_0}{4\pi}\lambda_I\alpha\int_{-\infty}^{\infty}\frac{1}{(\alpha^2+z^2)^{\frac 32}}\mathrm dz \\',
-            r'= & \frac{\mu_0}{4\pi}\lambda_I\alpha\int_{-\frac \pi 2}{+\frac \pi 2}\frac{1}{[\alpha^2(1+\tan^2\theta)]^{\frac 32}}\sec^2\theta\mathrm d\theta \\',
-            r'= & \frac{\mu_0}{4\pi}\lambda_I\alpha\int_{-\frac \pi 2}{+\frac \pi 2}\frac{\alpha\sec^2\theta}{\alpha^3\sec^3\theta}\mathrm d\theta \\',
+            r'\int_0^{2\pi}',
+            r'{1+\tan^2\frac{\theta}{2}', r'\over', r'(\beta+1)^2', r'\left(1', r'+\tan^2\frac{\theta}{2}\right)', r'-4\beta}',
+            r'\mathrm d\theta'
         )
-        # TODO
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            ReplacementTransform(formula[3], formula_target[3]),
+            FadeIn(formula_target[4:6]),
+            ReplacementTransform(formula[4], formula_target[6]),
+            ReplacementTransform(formula[5], formula_target[7]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_0^{2\pi}',
+            r'{1+\tan^2\frac{\theta}{2}', r'\over', r'(\beta+1)^2', r'+(\beta+1)^2\tan^2\frac{\theta}{2}', r'-4\beta}',
+            r'\mathrm d\theta'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            FadeOut(formula[3]),
+            ReplacementTransform(formula[4], formula_target[3]),
+            ReplacementTransform(formula[5], formula_target[4]),
+            ReplacementTransform(formula[6], formula_target[5]),
+            ReplacementTransform(formula[7], formula_target[6]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        helper_formula = MathTex(
+            r'(\beta+1)^2', r'-', r'4\beta', r'=', r'(\beta-1)^2'
+        ).next_to(formula, DOWN)
+        helper_formula[0].set_color(RED)
+        helper_formula[2].set_color(RED)
+        self.play(Write(helper_formula), formula[3].animate.set_color(RED), formula[5].animate.set_color(RED))
+        self.wait(2)
+
+        helper_formula_2 = MathTex(
+            r'\tan^2\phi', r'+', r'1', r'=', r'\sec^2\phi'
+        ).next_to(helper_formula, DOWN)
+        helper_formula_2[0].set_color(YELLOW)
+        self.play(Write(helper_formula_2), formula[1].animate.set_color(YELLOW))
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_0^{2\pi}',
+            r'{\sec^2\frac{\theta}{2}', r'\over', r'(\beta-1)^2', r'+(\beta+1)^2\tan^2\frac{\theta}{2}}',
+            r'\mathrm d\theta'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            ReplacementTransform(VGroup(formula[3], formula[5]), formula_target[3]),
+            ReplacementTransform(formula[4], formula_target[4]),
+            ReplacementTransform(formula[6], formula_target[5]),
+        )
+        self.play(Unwrite(helper_formula), Unwrite(helper_formula_2))
+        formula = formula_target
+        self.wait(2)
