@@ -114,7 +114,7 @@ def current_out_symbol(center: np.array, radius: float, **kwargs) -> VGroup:
         return VGroup(circ, dot)
 
 def vec_by_polar(r : float, theta : float) -> np.ndarray:
-    return r * np.array([np.cos(theta), np.sin(theta), 0])
+    return r * np.array([np.cos(theta), np.sin(theta), .0])
 
 class TipedCircle(VGroup):
     def __init__(self, radius : float, tip_cnt : int, is_ccw : bool, arr_color, **kwargs):
