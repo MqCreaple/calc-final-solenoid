@@ -124,9 +124,9 @@ class SolenoidSlice(ThreeDScene):
         self.play(Create(circle), Write(magnetic_label), Create(magnetic))
         self.wait(1)
         self.play(
-            MoveToTarget(circle, rate_func = rate_functions.linear, run_time = 2),
-            MoveToTarget(magnetic, rate_func = magnetic_rate_func, run_time = 2),
-            MoveToTarget(magnetic_label, rate_func = magnetic_rate_func, run_time = 2)
+            MoveToTarget(circle, rate_func = rate_functions.linear, run_time = 4),
+            MoveToTarget(magnetic, rate_func = magnetic_rate_func, run_time = 4),
+            MoveToTarget(magnetic_label, rate_func = magnetic_rate_func, run_time = 4)
         )
         self.wait(2)
         self.play(Uncreate(circle), Uncreate(magnetic), Uncreate(magnetic_label))
@@ -142,9 +142,9 @@ class SolenoidSlice(ThreeDScene):
         self.play(Create(line), Create(magnetic), Write(magnetic_label))
         self.wait(1)
         self.play(
-            Rotate(line, angle = TAU, about_point = ORIGIN, rate_func = rate_functions.linear, run_time = 2),
-            MoveToTarget(magnetic, rate_func = rate_functions.linear, run_time = 2),
-            MoveToTarget(magnetic_label, rate_func = rate_functions.linear, run_time = 2)
+            Rotate(line, angle = TAU, about_point = ORIGIN, rate_func = rate_functions.linear, run_time = 4),
+            MoveToTarget(magnetic, rate_func = rate_functions.linear, run_time = 4),
+            MoveToTarget(magnetic_label, rate_func = rate_functions.linear, run_time = 4)
         )
         self.wait(2)
         self.play(Uncreate(line), Uncreate(magnetic), Uncreate(magnetic_label))
@@ -193,7 +193,8 @@ class SolenoidSlice(ThreeDScene):
         self.play(
             MoveToTarget(dot), MoveToTarget(dot_label),
             MoveToTarget(alpha_vec), MoveToTarget(alpha_vec_label),
-            *[MoveToTarget(line) for line in surface.u_curves]
+            *[MoveToTarget(line) for line in surface.u_curves],
+            run_time = 2
         )
         self.wait(2)
 
@@ -265,7 +266,8 @@ class SolenoidSlice(ThreeDScene):
         magnetic_label.add_updater(lambda m: m.become(self.face_camera(MathTex(r'I\mathrm d\vec l\times\vec r', color = BLUE)).next_to(magnetic, UP + IN)))
         self.play(
             cam_phi.animate.set_value(new_phi),
-            cam_theta.animate.set_value(new_theta)
+            cam_theta.animate.set_value(new_theta),
+            run_time = 3
         )
         self.wait(2)
         
@@ -273,7 +275,8 @@ class SolenoidSlice(ThreeDScene):
         new_phi = 90 * DEGREES
         self.play(
             cam_phi.animate.set_value(new_phi),
-            cam_theta.animate.set_value(new_theta)
+            cam_theta.animate.set_value(new_theta),
+            run_time = 3
         )
         self.wait(2)
         self.play(Unwrite(current_label), Unwrite(r_vec_label), Unwrite(magnetic_label))
@@ -287,7 +290,7 @@ class SolenoidSlice(ThreeDScene):
         # animation of changing every short line to a cross symbol
         for i in range(len(line_pile)):
             animations.append(Transform(surface.u_curves[i], cross_symbol_pile[i]))
-        self.play(*animations, FadeOut(current))
+        self.play(*animations, FadeOut(current), run_time = 3)
         self.wait(2)
 
         print(dot_label in self.mobjects)
@@ -358,11 +361,11 @@ class IntegrateSlice(Scene):
         brace_label2.add_updater(lambda m: m.next_to(brace_label1, RIGHT))
         brace.generate_target()
         brace.target = BraceBetweenPoints([solenoid_radius, 0, 0], [solenoid_radius, 2, 0])
-        self.play(MoveToTarget(brace))
+        self.play(MoveToTarget(brace), run_time = 2)
         self.wait(1)
         brace.generate_target()
         brace.target = BraceBetweenPoints([solenoid_radius, 0, 0], [solenoid_radius, 3, 0])
-        self.play(MoveToTarget(brace))
+        self.play(MoveToTarget(brace), run_time = 2)
         self.wait(1)
         self.play(Uncreate(brace), Unwrite(brace_label1), Unwrite(brace_label2))
         self.wait(2)
@@ -468,11 +471,11 @@ class IntegrateSlice(Scene):
         formula_target = MathTex(
             r'\frac{\mu_0}{4\pi}\lambda_I y',
             r'\int_{-\infty}^{+\infty}',
-            r'\frac{1}{(x^2+y^2+z^2)^{\frac 32}}',
+            r'{1', r'\over', r'(', r'x^2+y^2', r'+z^2)^{\frac 32}}',
             r'\mathrm dz'
         )
         formula_target[1].set_color(YELLOW)
-        formula_target[3].set_color(YELLOW)
+        formula_target[7].set_color(YELLOW)
         self.play(TransformMatchingTex(formula, formula_target))
         formula = formula_target
         self.wait(3)
@@ -485,7 +488,8 @@ class IntegrateSlice(Scene):
         ## script: Since $z$ is the integral variable and $\alpha$ is a constant, we can use a trig substitution
         ## script: for expression of the form $\alpha^2 + z^2$.
         alpha_sub = MathTex(r'\alpha^2', r'=', r'x^2+y^2').next_to(formula, DOWN)
-        self.play(Write(alpha_sub))
+        alpha_sub[0].set_color(RED)
+        self.play(Write(alpha_sub), Indicate(formula[5], color = RED))
         self.wait(2)
         formula_target = MathTex(
             r'\frac{\mu_0}{4\pi}\lambda_I y',
@@ -495,7 +499,13 @@ class IntegrateSlice(Scene):
         )
         formula_target[1].set_color(YELLOW)
         formula_target[3].set_color(YELLOW)
-        self.play(Transform(formula, formula_target))
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2:7], formula_target[2]),
+            ReplacementTransform(formula[7], formula_target[3]),
+        )
+        formula = formula_target
         self.wait(2)
 
         z_sub = MathTex(r'z', r'=', r'\alpha\tan\theta').next_to(alpha_sub, DOWN)
@@ -510,7 +520,9 @@ class IntegrateSlice(Scene):
         )
         formula_target[1].set_color(YELLOW)
         formula_target[5].set_color(YELLOW)
-        self.play(Transform(formula, formula_target), Unwrite(z_sub), Unwrite(alpha_sub))
+        self.play(Transform(formula, formula_target))
+        self.wait(2)
+        self.play(Unwrite(z_sub), Unwrite(alpha_sub))
         self.wait(2)
 
         ## script: Now, let's differentiate the $\alpha\tan\theta$. Remember to change the bound of integration.
@@ -1085,10 +1097,9 @@ class Final(Scene):
         )
 
         self.play(
-            ReplacementTransform(prompt_formula[0:2], formula_target[0]),
+            ReplacementTransform(prompt_formula[0:2].copy(), formula_target[0]),
             ReplacementTransform(formula, formula_target[1]),
-            ReplacementTransform(prompt_formula[2:], formula_target[1]),
-            Unwrite(prompt)
+            ReplacementTransform(prompt_formula[2:].copy(), formula_target[1]),
         )
         formula = formula_target
         self.wait(2)
@@ -1101,6 +1112,36 @@ class Final(Scene):
             r'\int_{0}^{2\pi}\frac{1-\beta\cos\theta}{\beta^2-2\beta\cos\theta+1}\mathrm d\theta',
             r'=', r'2\pi'
         )
-        self.play(Write(formula_target[0:2]), ReplacementTransform(formula, formula_target[2]))
+        self.play(
+            Write(formula_target[0:2]), ReplacementTransform(formula, formula_target[2]),
+            Unwrite(prompt), Unwrite(prompt_formula)
+        )
         formula = formula_target
         self.wait(2)
+
+        formula.generate_target()
+        formula2 = MathTex(r'B', r'=', r'2\pi', r'\cdot', r'{\mu_0', r'\over', r'2\pi}', r'\lambda_I')
+        formula2[0].set_color(BLUE)
+        VGroup(formula.target, formula2).arrange(DOWN).center()
+        self.play(MoveToTarget(formula), Write(formula2[0:2]), ReplacementTransform(formula[2].copy(), formula2[2]), Write(formula2[3:]))
+        self.wait(2)
+
+        self.play(Indicate(formula2[2], color = RED), Indicate(formula2[6], color = RED))
+
+        formula2_target = MathTex(r'B', r'=', r'\mu_0', r'\lambda_I').move_to(formula2)
+        formula2_target[0].set_color(BLUE)
+        self.play(
+            ReplacementTransform(formula2[0], formula2_target[0]),
+            ReplacementTransform(formula2[1], formula2_target[1]),
+            FadeOut(formula2[2]), FadeOut(formula2[3]),
+            ReplacementTransform(formula2[4], formula2_target[2]),
+            Uncreate(formula2[5]), FadeOut(formula2[6]),
+            ReplacementTransform(formula2[7], formula2_target[3]),
+        )
+        formula2 = formula2_target
+        self.wait(2)
+
+        self.play(Unwrite(formula), formula2.animate.center())
+        self.wait(2)
+
+        self.play(Circumscribe(formula2), run_time = 2)
