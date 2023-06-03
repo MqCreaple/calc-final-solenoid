@@ -323,7 +323,8 @@ class CoordTransFromStackToCirc(ThreeDScene):
             run_time=3
         )
         
-        cr_angle = Angle(cvec, rvec, radius=.5, quadrant=(1, -1))
+        cr_angle = Angle(cvec, rvec, radius=.8, quadrant=(1, 1), other_angle=True)
+        
         phi_ang_tex = MathTex(r"\phi", color=WHITE).next_to(cr_angle, LEFT, buff=.2)
         self.play(
             Create(cr_angle),
@@ -339,14 +340,159 @@ class CoordTransFromStackToCirc(ThreeDScene):
         dotproduct_formula.to_corner(DL).shift(UR * 1.5)
         self.remove(dotproduct_formula)
         self.play(Write(dotproduct_formula), run_time=1)
+        self.play(Indicate(dotproduct_formula[-4]), Indicate(dotproduct_formula[-1]), Indicate(dotproduct_formula[-2])) # indicate rvec cos phi
         self.wait(1)
+        # script: even we figured out how to represent yprime, but our final goal is to represent all variables in the form of theta
+        self.play(Indicate(d_theta_tex))
+        self.wait(1)
+        self.play(*[FadeOut(mob) for mob in self.mobjects], run_time=2)
+        self.wait(1)
+
 
 class CircIntFormula(Scene):
     def construct(self):
-        pass
-    
+        HEI = self.camera.frame_height
+        WID = self.camera.frame_width
+        print(HEI, WID)
+        # zoom out for a factor of .7
+        ZOOM_FACTOR = .8
+        TIP_LEN_TO_LEN_RATIO = .15
+        ARR_STROKE_WID = 3
+        TIP_LEN = .4
+        TIP_WID = .2
+        TIP_CFG = {"tip_length": TIP_LEN, "tip_width": TIP_WID, "tip_shape" : ArrowTriangleFilledTip}
+        self.camera.frame_height = HEI / ZOOM_FACTOR
+        self.camera.frame_width = WID / ZOOM_FACTOR
+        WID /= ZOOM_FACTOR
+        HEI /= ZOOM_FACTOR
+        
+        circ_radius : float = HEI / 2 * .75
+        circ_center = ORIGIN # TODO: make this a variable, so change the value tracker of this can directly shift the circle
+        circ = Circle(radius=circ_radius, color=MAROON)
+        ax = Axes(axis_config={'tip_shape': StealthTip})
+        XLINE = Line(start=LEFT * WID / 2, end=RIGHT * WID / 2, color=WHITE) # does not actually display, used for getting the angle
+        YLINE = Line(start=DOWN * HEI / 2, end=UP * HEI / 2, color=WHITE)
+        xylabels = ax.get_axis_labels(x_label='x', y_label='y')
+        ax.add(xylabels)
+        self.add(ax, circ)
+        mag_dot_pos = [circ_radius * .7, 0, 0]
+        mag_dot = Dot(mag_dot_pos, color=RED)
+        INIT_THETA : float = .01
+        self.add(mag_dot)
+        
+        # cvec points from the point of integration to the  center of the circle
+        cvec_theta_tex = Variable(INIT_THETA, MathTex(r"\theta", color=WHITE), num_decimal_places=2).scale(.5)
+        
+        cvec = Arrow(start=ORIGIN, end=ORIGIN, color=GREEN,
+                     max_tip_length_to_length_ratio=TIP_LEN_TO_LEN_RATIO)
+        def integration_pt() -> np.ndarray:
+            return vec_by_polar(circ_radius, cvec_theta_tex.value.get_value())
+        def cvec_updater(mob : Arrow):
+            mob.become(Line(start=integration_pt(),
+                       end=ORIGIN, color=GREEN).add_tip(**TIP_CFG))
+        cvec.add_updater(cvec_updater)
+        cvec_tex = MathTex(r"\vec c", color=GREEN)
+        def cvec_tex_updater(mob: MathTex):
+            cvec_midpos = (cvec.get_start() + cvec.get_end()) / 2
+            # shift cvec_tex to the top of midpos 
+            cvec_tan_vec = np.array([-cvec_midpos[1], cvec_midpos[0], .0]) / np.linalg.norm(cvec_midpos)
+            cvec_tex_pos = cvec_midpos + cvec_tan_vec * .3
+            mob.become(MathTex(r"\vec c", color=GREEN).move_to(cvec_tex_pos))
+        cvec_tex.add_updater(cvec_tex_updater)
+        self.add(cvec, cvec_tex)
+        
+        # rvec points from the point of integration to the point of observation 
+        rvec = Line(start=ORIGIN, end=ORIGIN, color=BLUE)
+        rvec_tex = MathTex(r"\vec r", color=BLUE)
+        def rvec_updater(mob : Mobject):
+            mob.become(Line(start=integration_pt(), end=mag_dot.get_center(
+            ), color=BLUE).add_tip(**TIP_CFG))
+        def rvec_tex_updater(mob : MathTex):
+            rvec_val = rvec.get_end() - rvec.get_start()
+            rvec_tan = np.array([-rvec_val[1], rvec_val[0], .0]) / np.linalg.norm(rvec_val)
+            rvec_tex_pos = (rvec.get_start() + rvec.get_end()) / 2 + rvec_tan * .3
+            mob.become(MathTex(r"\vec r", color=BLUE,).move_to(rvec_tex_pos))
+        rvec.add_updater(rvec_updater)
+        rvec_tex.add_updater(rvec_tex_updater)
+        self.add(rvec, rvec_tex)
+        
+        # yprime is the projection of rvec onto cvec
+        yprime = Line(start=ORIGIN, end=ORIGIN, color=RED)
+        yprime_tex = MathTex(r"y'", color=RED)
+        def yprime_updater(mob : Mobject):
+            rvec_val = rvec.get_end() - rvec.get_start()
+            cvec_val = cvec.get_end() - cvec.get_start()
+            yprime_mag = np.dot(rvec_val, cvec_val) / np.linalg.norm(cvec_val) 
+            yprime_val = cvec_val / np.linalg.norm(cvec_val) * yprime_mag
+            mob.become(Line(start=cvec.get_start(), end=cvec.get_start(
+            ) + yprime_val, color=RED).add_tip(**TIP_CFG))
+        def yprime_tex_updater(mob : Mobject):
+            yprime_val = yprime.get_end() - yprime.get_start()
+            yprime_tan = np.array([yprime_val[1], -yprime_val[0], .0]) / np.linalg.norm(yprime_val)
+            yprime_tex_pos = (yprime.get_start() + yprime.get_end()) / 2 + yprime_tan * .3
+            mob.become(MathTex(r"y'", color=RED).move_to(yprime_tex_pos))
+        yprime.add_updater(yprime_updater)
+        yprime_tex.add_updater(yprime_tex_updater)
+        self.add(yprime, yprime_tex)
+        
+        
+        # add updaters for theta angle sign
+        angle_sign : Angle = Angle(XLINE, YLINE) # temporary value, will be updated by its updater
+        ANG_SIGN_RAD = .5
+        def angle_sign_updater(mob : Angle):
+            tmp = Angle(XLINE, cvec, radius=ANG_SIGN_RAD,
+                        quadrant=[1, -1], color=WHITE)
+            mob.become(tmp)
+        angle_sign.add_updater(angle_sign_updater)
+        self.add(cvec_theta_tex, angle_sign)
+        
+        def cvec_theta_tex_updater(mob : Variable):
+            # move to the top left of angle sign 
+            between_cvec_xline = vec_by_polar(
+                1, cvec_theta_tex.value.get_value() / 2)
+            cvec_theta_tex_pos = between_cvec_xline * (ANG_SIGN_RAD + .3)
+            mv_vec = cvec_theta_tex_pos - cvec_theta_tex.get_left()
+            mob.shift(mv_vec)
+            
+        circum_x_tex = Variable(0, "x", color=WHITE, num_decimal_places=2).scale(.8)
+        def circum_x_updater(mob : Variable):
+            mob.tracker.set_value(integration_pt()[0])
+            mob.move_to(integration_pt() * 1.1)
+        circum_y_tex = Variable(0, "y", color=WHITE, num_decimal_places=2).scale(.8)
+        def circum_y_updater(mob : Variable):
+            mob.tracker.set_value(integration_pt()[1])
+            mob.next_to(circum_x_tex, RIGHT, buff=.1)
+        circum_x_tex.add_updater(circum_x_updater)
+        circum_y_tex.add_updater(circum_y_updater)
+        self.add(circum_x_tex, circum_y_tex)
 
-
+        
+        cvec_theta_tex.add_updater(cvec_theta_tex_updater)
+        theta_var_tracker = cvec_theta_tex.tracker
+        self.play(theta_var_tracker.animate.set_value(30 * DEGREES + 2 * PI), run_time=6)
+        
+        # move all the previous scene to upper left corner, and start writing formula 
+        rotation_int_mobs_lst = [
+            rvec, rvec_tex, cvec_theta_tex, circum_x_tex, circum_y_tex, circ, ax, cvec, cvec_tex, mag_dot, yprime, yprime_tex, angle_sign
+        ]
+        
+        for mob in rotation_int_mobs_lst:
+            mob.update()
+            mob.clear_updaters()
+        # rvec.clear_updaters(); rvec_tex.clear_updaters(); yprime.clear_updaters(); yprime_tex.clear_updaters(); angle_sign.clear_updaters(); cvec_theta_tex.clear_updaters(); circum_x_tex.clear_updaters(); circum_y_tex.clear_updaters()
+        # cvec.clear_updaters(); cvec_tex.clear_updaters(); 
+        self.wait(1)
+        
+        rotation_int_mobs = VGroup(*rotation_int_mobs_lst)
+        rotation_int_mobs.generate_target()
+        rotation_int_mobs.target.scale(.5).to_corner(UL, buff=.2)
+        
+        self.play(
+            MoveToTarget(rotation_int_mobs),
+            run_time=2
+        )
+        self.wait(1)
+        
 class InfLineAmpLaw(ThreeDScene):
     def ampere_infline_int(self, alpha: float, current: float) -> float:
         # the integrand of the ampere loop law when integrating over an infinite long straight line
