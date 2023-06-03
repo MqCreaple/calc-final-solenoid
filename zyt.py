@@ -169,13 +169,13 @@ class CoordTransFromStackToCirc(ThreeDScene):
         self.wait(1)
         d_theta_tex = MathTex(r"\mathrm{d}\theta").next_to(bz_formula_tex, RIGHT, buff=.8)
         arr_from_dtheta_to_bz_form = Arrow(start=d_theta_tex.get_left(), end=bz_formula_tex.get_right(), color=WHITE)
-        qustion_mark_on_arr = Text("?", color=WHITE).next_to(arr_from_dtheta_to_bz_form, UP, buff=.2)
-        self.add_fixed_in_frame_mobjects(d_theta_tex, arr_from_dtheta_to_bz_form, qustion_mark_on_arr)
-        self.remove(d_theta_tex, arr_from_dtheta_to_bz_form, qustion_mark_on_arr)
+        question_mark_on_arr = Text("?", color=WHITE).next_to(arr_from_dtheta_to_bz_form, UP, buff=.2)
+        self.add_fixed_in_frame_mobjects(d_theta_tex, arr_from_dtheta_to_bz_form, question_mark_on_arr)
+        self.remove(d_theta_tex, arr_from_dtheta_to_bz_form, question_mark_on_arr)
         self.play(AnimationGroup(
             Write(arr_from_dtheta_to_bz_form),
             Write(d_theta_tex),
-            Write(qustion_mark_on_arr),
+            Write(question_mark_on_arr),
             lag_ratio=.1
         ), run_time=2)
         self.wait(1)
@@ -358,40 +358,64 @@ class CircIntFormula(Scene):
         ZOOM_FACTOR = .8
         TIP_LEN_TO_LEN_RATIO = .15
         ARR_STROKE_WID = 3
-        TIP_LEN = .4
-        TIP_WID = .2
+        TIP_LEN = .3
+        TIP_WID = .1
         TIP_CFG = {"tip_length": TIP_LEN, "tip_width": TIP_WID, "tip_shape" : ArrowTriangleFilledTip}
         self.camera.frame_height = HEI / ZOOM_FACTOR
         self.camera.frame_width = WID / ZOOM_FACTOR
         WID /= ZOOM_FACTOR
         HEI /= ZOOM_FACTOR
         
-        circ_radius : float = HEI / 2 * .75
-        circ_center = ORIGIN # TODO: make this a variable, so change the value tracker of this can directly shift the circle
-        circ = Circle(radius=circ_radius, color=MAROON)
-        ax = Axes(axis_config={'tip_shape': StealthTip})
+        CIRC_INIT_RAD : float = HEI / 2 * .75
+        circ_radius_tracker = ValueTracker(CIRC_INIT_RAD)
+        circ_center_tracker = (ValueTracker(0), ValueTracker(0))
+        circ_center = lambda : np.array([circ_center_tracker[0].get_value(), circ_center_tracker[1].get_value(), .0])
+        circ_radius = lambda : circ_radius_tracker.get_value()
+        
+        circ = Circle(radius=CIRC_INIT_RAD, color=MAROON) # let the circle move with the tracker 
+        circ.add_updater(lambda m: m.move_to(circ_center()))
+        circ.add_updater(lambda m: m.set_width(circ_radius() * 2))
+        
+        ax = Axes(axis_config={'tip_shape': StealthTip}, x_length=circ_radius() * 2, y_length=circ_radius() * 2, x_range=[-circ_radius(), circ_radius(), 1], y_range=[-circ_radius(), circ_radius(), 1], color=WHITE)
+    
         XLINE = Line(start=LEFT * WID / 2, end=RIGHT * WID / 2, color=WHITE) # does not actually display, used for getting the angle
+        XLINE.add_updater(lambda m: m.move_to(circ_center()))
         YLINE = Line(start=DOWN * HEI / 2, end=UP * HEI / 2, color=WHITE)
+        YLINE.add_updater(lambda m: m.move_to(circ_center()))
         xylabels = ax.get_axis_labels(x_label='x', y_label='y')
-        ax.add(xylabels)
+        xylabel_cur_shift = xylabels.get_center() - circ_center()
+        xylabels.add_updater(lambda m: m.move_to(circ_center() + xylabel_cur_shift))
+        
+        # ax.add(xylabels)
+        AX_OFFSET_FROM_CIRC_CENT = circ_center() - ax.get_center()        
+        ax.add_updater(lambda m: m.move_to(circ_center() - AX_OFFSET_FROM_CIRC_CENT))
+        # set the size of the axes so that it covers the circle perfectly
+        def ax_udpater(mob : Axes):
+            tar = Axes(axis_config={'tip_shape': StealthTip, **TIP_CFG}, x_length=circ_radius() * 2, y_length=circ_radius(
+            ) * 2, x_range=[-circ_radius(), circ_radius(), 1], y_range=[-circ_radius(), circ_radius(), 1], color=WHITE).move_to(circ_center() - AX_OFFSET_FROM_CIRC_CENT)
+            ax.become(tar)
+        ax.add_updater(ax_udpater)
+        
         self.add(ax, circ)
-        mag_dot_pos = [circ_radius * .7, 0, 0]
-        mag_dot = Dot(mag_dot_pos, color=RED)
+        obs_dot_pos = lambda : np.array([circ_radius() * .7, 0, 0])
+        obs_dot = Dot(obs_dot_pos(), color=RED)
+        obs_dot.add_updater(lambda m : m.move_to(obs_dot_pos() + circ_center()))
+        
         INIT_THETA : float = .01
-        self.add(mag_dot)
+        self.add(obs_dot)
         
         # cvec points from the point of integration to the  center of the circle
         cvec_theta_tex = Variable(INIT_THETA, MathTex(r"\theta", color=WHITE), num_decimal_places=2).scale(.5)
         
         cvec = Arrow(start=ORIGIN, end=ORIGIN, color=GREEN,
                      max_tip_length_to_length_ratio=TIP_LEN_TO_LEN_RATIO)
-        def integration_pt() -> np.ndarray:
-            return vec_by_polar(circ_radius, cvec_theta_tex.value.get_value())
+        def integration_pt_pos() -> np.ndarray:
+            return vec_by_polar(circ_radius(), cvec_theta_tex.value.get_value()) + circ_center()
         def cvec_updater(mob : Arrow):
-            mob.become(Line(start=integration_pt(),
-                       end=ORIGIN, color=GREEN).add_tip(**TIP_CFG))
+            mob.become(Line(start=integration_pt_pos(),
+                       end=circ_center(), color=GREEN).add_tip(**TIP_CFG))
         cvec.add_updater(cvec_updater)
-        cvec_tex = MathTex(r"\vec c", color=GREEN)
+        cvec_tex = MathTex(r"\vec c", color=GREEN).scale(.8)
         def cvec_tex_updater(mob: MathTex):
             cvec_midpos = (cvec.get_start() + cvec.get_end()) / 2
             # shift cvec_tex to the top of midpos 
@@ -403,9 +427,9 @@ class CircIntFormula(Scene):
         
         # rvec points from the point of integration to the point of observation 
         rvec = Line(start=ORIGIN, end=ORIGIN, color=BLUE)
-        rvec_tex = MathTex(r"\vec r", color=BLUE)
+        rvec_tex = MathTex(r"\vec r", color=BLUE).scale(.8)
         def rvec_updater(mob : Mobject):
-            mob.become(Line(start=integration_pt(), end=mag_dot.get_center(
+            mob.become(Line(start=integration_pt_pos(), end=obs_dot.get_center(
             ), color=BLUE).add_tip(**TIP_CFG))
         def rvec_tex_updater(mob : MathTex):
             rvec_val = rvec.get_end() - rvec.get_start()
@@ -418,7 +442,7 @@ class CircIntFormula(Scene):
         
         # yprime is the projection of rvec onto cvec
         yprime = Line(start=ORIGIN, end=ORIGIN, color=RED)
-        yprime_tex = MathTex(r"y'", color=RED)
+        yprime_tex = MathTex(r"y'", color=RED).scale(.8)
         def yprime_updater(mob : Mobject):
             rvec_val = rvec.get_end() - rvec.get_start()
             cvec_val = cvec.get_end() - cvec.get_start()
@@ -450,17 +474,17 @@ class CircIntFormula(Scene):
             # move to the top left of angle sign 
             between_cvec_xline = vec_by_polar(
                 1, cvec_theta_tex.value.get_value() / 2)
-            cvec_theta_tex_pos = between_cvec_xline * (ANG_SIGN_RAD + .3)
+            cvec_theta_tex_pos = between_cvec_xline * (ANG_SIGN_RAD + .3) + circ_center()
             mv_vec = cvec_theta_tex_pos - cvec_theta_tex.get_left()
             mob.shift(mv_vec)
             
-        circum_x_tex = Variable(0, "x", color=WHITE, num_decimal_places=2).scale(.8)
+        circum_x_tex = Variable(0, "x", color=WHITE, num_decimal_places=2).scale(.6)
         def circum_x_updater(mob : Variable):
-            mob.tracker.set_value(integration_pt()[0])
-            mob.move_to(integration_pt() * 1.1)
-        circum_y_tex = Variable(0, "y", color=WHITE, num_decimal_places=2).scale(.8)
+            mob.tracker.set_value(integration_pt_pos()[0])
+            mob.move_to(integration_pt_pos() * 1.2)
+        circum_y_tex = Variable(0, "y", color=WHITE, num_decimal_places=2).scale(.6)
         def circum_y_updater(mob : Variable):
-            mob.tracker.set_value(integration_pt()[1])
+            mob.tracker.set_value(integration_pt_pos()[1])
             mob.next_to(circum_x_tex, RIGHT, buff=.1)
         circum_x_tex.add_updater(circum_x_updater)
         circum_y_tex.add_updater(circum_y_updater)
@@ -469,29 +493,145 @@ class CircIntFormula(Scene):
         
         cvec_theta_tex.add_updater(cvec_theta_tex_updater)
         theta_var_tracker = cvec_theta_tex.tracker
-        self.play(theta_var_tracker.animate.set_value(30 * DEGREES + 2 * PI), run_time=6)
+        self.play(theta_var_tracker.animate.set_value(40 * DEGREES + 2 * PI), run_time=6)
         
         # move all the previous scene to upper left corner, and start writing formula 
         rotation_int_mobs_lst = [
-            rvec, rvec_tex, cvec_theta_tex, circum_x_tex, circum_y_tex, circ, ax, cvec, cvec_tex, mag_dot, yprime, yprime_tex, angle_sign
+            rvec, rvec_tex, cvec_theta_tex, circum_x_tex, circum_y_tex, circ, ax, cvec, cvec_tex, obs_dot, yprime, yprime_tex, angle_sign
         ]
-        
         for mob in rotation_int_mobs_lst:
             mob.update()
-            mob.clear_updaters()
-        # rvec.clear_updaters(); rvec_tex.clear_updaters(); yprime.clear_updaters(); yprime_tex.clear_updaters(); angle_sign.clear_updaters(); cvec_theta_tex.clear_updaters(); circum_x_tex.clear_updaters(); circum_y_tex.clear_updaters()
-        # cvec.clear_updaters(); cvec_tex.clear_updaters(); 
         self.wait(1)
         
-        rotation_int_mobs = VGroup(*rotation_int_mobs_lst)
-        rotation_int_mobs.generate_target()
-        rotation_int_mobs.target.scale(.5).to_corner(UL, buff=.2)
+        circ_left_buf = .5
+        new_cent_x = -WID / 2 + circ_left_buf + circ_radius() * .7
+        self.play(circ_center_tracker[0].animate.set_value(new_cent_x), circ_radius_tracker.animate.set_value(circ_radius() * .7), run_time=1.5)
+        self.wait(1)
         
+        bz_formula_tex = MathTex(r"{2k\lambda_I", r"y^\prime", r"\over", r"|\vec r|}", r"\mathrm d l").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec r": BLUE}).to_corner(UR)
+        yprime_formula = MathTex(r"y^\prime", r"=" ,r"{\vec c", r"\cdot", r"\vec r", r"\over", r"|", r"\vec c", r"|}").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec c": GREEN, r"\vec r": BLUE}).next_to(bz_formula_tex, DOWN)
+        self.play(Write(yprime_formula), Write(bz_formula_tex))
+        q_theta_tex = MathTex(r"\theta").next_to(yprime_formula, RIGHT, buff=1)
+        arr_from_theta_to_yprime_form = Arrow(q_theta_tex.get_left(), yprime_formula.get_right(), buff=.1)
+        qmark_on_arr = MathTex(r"?").next_to(arr_from_theta_to_yprime_form, UP, buff=.1)
         self.play(
-            MoveToTarget(rotation_int_mobs),
+            AnimationGroup(
+                Write(arr_from_theta_to_yprime_form),
+                Write(q_theta_tex),
+                Write(qmark_on_arr),
+                lag_ratio=.15
+            ),
             run_time=2
         )
         self.wait(1)
+        # now show how to represent 
+        integration_pt_formula = MathTex(r"\scriptsize{\text{point of integration}}", r"=", r""" 
+                                        R\cdot \begin{bmatrix}
+                                        \cos \theta \\
+                                        \sin \theta
+                                        \end{bmatrix}
+                                        """).to_edge(UP)
+        integration_pt = Dot(ORIGIN, color=YELLOW)
+        integration_pt.add_updater(lambda mob : mob.move_to(integration_pt_pos()))
+        self.play(Write(integration_pt_formula))
+        self.wait(1)
+        self.play(Write(integration_pt))
+        # change theta on the circle a litte, and indicate (wiggle) where is the integration point 
+        TWEAK_ANGLE = 15 * DEGREES
+        self.play(
+            theta_var_tracker.animate.set_value(theta_var_tracker.get_value() + TWEAK_ANGLE),
+            Indicate(integration_pt),
+            run_time=1.5
+        )
+        self.play(
+            theta_var_tracker.animate.set_value(theta_var_tracker.get_value() - TWEAK_ANGLE),
+            Indicate(integration_pt),
+            run_time=1.5
+        )
+        self.wait(1)
+        
+        # script: since cvec points from the point of consideration to the origin, we have:
+        cvec_formula = MathTex(r"\vec c", r"=", r"-", r"R\cdot \begin{bmatrix} \cos \theta \\ \sin \theta \end{bmatrix}").next_to(integration_pt_formula, DOWN).set_color_by_tex_to_color_map({r"\vec c": GREEN}).scale(.8)
+        self.play(Write(cvec_formula))
+        self.wait(1)
+        
+        observation_pt_formula = MathTex(r"\scriptsize{\text{point of observation}}", r"=", r"""
+                                            \begin{bmatrix}
+                                                x\\
+                                                0
+                                            \end{bmatrix}
+                                         """).next_to(cvec_formula, DOWN).scale(.8)
+        self.play(
+            Write(observation_pt_formula), 
+            Indicate(obs_dot),
+            run_time=1.5
+        )
+        self.wait(1)
+        
+        # script: rvec is the vector from the point of integration to the point of observation
+        rvec_formula = MathTex(r"\vec r", r"=", r""" 
+                                    \begin{bmatrix}
+                                        x\\
+                                        0
+                                    \end{bmatrix} - 
+                                    R\begin{bmatrix}
+                                        \cos \theta \\
+                                        \sin \theta
+                                    \end{bmatrix}
+                                """, r"=", r""" 
+                                    \begin{bmatrix}
+                                        x - R\cos \theta \\
+                                        -R\sin \theta
+                                    \end{bmatrix}
+                                """).set_color_by_tex_to_color_map({r"\vec r": BLUE}).next_to(observation_pt_formula, DOWN).scale(.8).shift(RIGHT * .1)
+        self.play(
+            AnimationGroup(
+                Circumscribe(rvec, run_time=1.5),
+                Write(rvec_formula[:-2], run_time=1.5),
+                lag_ratio=.4
+            )
+            )   
+        self.wait(1)
+        self.play(Write(rvec_formula[-2:]))
+        self.wait(1)
+        
+        yprime_mat_formula = yprime_formula.copy().scale(.8).next_to(rvec_formula, DOWN)
+        self.play(Write(yprime_mat_formula))
+        # now start to transform the formula
+        self.wait(1)
+        # replace cvec with vector representation
+        yprime_mat_formula2_tex_string_by_part = [yprime_mat_formula[i].get_tex_string() for i in range(len(yprime_mat_formula))]
+        yprime_mat_formula2_tex_string_by_part[2] = r"{" + cvec_formula[3].get_tex_string() # cvec in matrix form
+        yprime_mat_formula2 = MathTex(*yprime_mat_formula2_tex_string_by_part).scale(.8).next_to(rvec_formula, DOWN).set_color_by_tex_to_color_map({r"\vec r": BLUE, r"y^\prime": RED, r"\vec c": GREEN})
+        yprime_mat_formula2[2].set_color(GREEN)
+        self.play(
+            TransformMatchingTex(yprime_mat_formula, yprime_mat_formula2),
+            run_time=2
+        )
+        self.wait(1)
+
+        yprime_mat_formula3_tex_string_by_part = yprime_mat_formula2_tex_string_by_part.copy() # replace rvec with vector representation
+        yprime_mat_formula3_tex_string_by_part[4] = rvec_formula[-1].get_tex_string()
+        yprime_mat_formula3 = MathTex(*yprime_mat_formula3_tex_string_by_part).scale(.8).next_to(rvec_formula, DOWN).set_color_by_tex_to_color_map({r"\vec r": BLUE, r"y^\prime": RED, r"\vec c": GREEN})
+        yprime_mat_formula3[2].set_color(GREEN); yprime_mat_formula3[4].set_color(BLUE)
+        self.play(
+            TransformMatchingTex(yprime_mat_formula2, yprime_mat_formula3),
+            run_time=2
+        )
+        self.wait(1)
+        
+        # now change |\vev c| to R, script: since cvec points from one point in the circumference to the origin, its magnitude must be radius of the circle
+        yprime_mat_formula4_tex_string_by_part = yprime_mat_formula3_tex_string_by_part[:-3].copy()
+        yprime_mat_formula4_tex_string_by_part.append(r"R}")
+        yprime_mat_formula4 = MathTex(*yprime_mat_formula4_tex_string_by_part).scale(.8).next_to(rvec_formula, DOWN).set_color_by_tex_to_color_map({r"\vec r": BLUE, r"y^\prime": RED, r"\vec c": GREEN})
+        yprime_mat_formula4[2].set_color(GREEN); yprime_mat_formula4[4].set_color(BLUE)
+        self.play(
+            TransformMatchingTex(yprime_mat_formula3, yprime_mat_formula4),
+            run_time=2
+        )
+        self.wait(1)
+        
+        # cancle out the R both in the numerator and denominator
         
 class InfLineAmpLaw(ThreeDScene):
     def ampere_infline_int(self, alpha: float, current: float) -> float:
