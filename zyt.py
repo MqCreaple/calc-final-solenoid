@@ -349,7 +349,18 @@ class CoordTransFromStackToCirc(ThreeDScene):
         self.wait(1)
 
 
-class CircIntFormula(Scene):
+class CircIntFormula(ZoomedScene):
+    def __init__(self):
+        
+        ZoomedScene.__init__(self, **{
+            "zoom_factor": 0.17,
+            "zoomed_display_height": 4,
+            "zoomed_display_width": 5,
+            "image_frame_stroke_width": 20,
+            "zoomed_camera_config": {
+                "default_frame_stroke_width": 3,
+            },
+        })
     def construct(self):
         HEI = self.camera.frame_height
         WID = self.camera.frame_width
@@ -508,7 +519,7 @@ class CircIntFormula(Scene):
         self.play(circ_center_tracker[0].animate.set_value(new_cent_x), circ_radius_tracker.animate.set_value(circ_radius() * .7), run_time=1.5)
         self.wait(1)
         
-        bz_formula_tex = MathTex(r"{2k\lambda_I", r"y^\prime", r"\over", r"|\vec r|}", r"\mathrm d l").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec r": BLUE}).to_corner(UR)
+        bz_formula_tex = MathTex(r"{2k\lambda_I", r"y^\prime", r"\over", r"|\vec{r}^2|}", r"\mathrm d l").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec{r}^2": BLUE}).to_corner(UR)
         yprime_formula = MathTex(r"y^\prime", r"=" ,r"{\vec c", r"\cdot", r"\vec r", r"\over", r"|", r"\vec c", r"|}").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec c": GREEN, r"\vec r": BLUE}).next_to(bz_formula_tex, DOWN)
         self.play(Write(yprime_formula), Write(bz_formula_tex))
         q_theta_tex = MathTex(r"\theta").next_to(yprime_formula, RIGHT, buff=1)
@@ -539,12 +550,15 @@ class CircIntFormula(Scene):
         # change theta on the circle a litte, and indicate (wiggle) where is the integration point 
         TWEAK_ANGLE = 15 * DEGREES
         self.play(
-            theta_var_tracker.animate.set_value(theta_var_tracker.get_value() + TWEAK_ANGLE),
+            theta_var_tracker.animate.increment_value(TWEAK_ANGLE),
             Indicate(integration_pt),
             run_time=1.5
         )
+        for mob in rotation_int_mobs_lst:
+            mob.update()
+        
         self.play(
-            theta_var_tracker.animate.set_value(theta_var_tracker.get_value() - TWEAK_ANGLE),
+            theta_var_tracker.animate.increment_value(-TWEAK_ANGLE),
             Indicate(integration_pt),
             run_time=1.5
         )
@@ -632,6 +646,251 @@ class CircIntFormula(Scene):
         self.wait(1)
         
         # cancle out the R both in the numerator and denominator
+        self.play(
+            Indicate(yprime_mat_formula4[2][0]), # R on the numerator
+            Indicate(yprime_mat_formula4[-1]),   # R on the denominator
+        )
+        self.wait(1)
+        yprime_mat_formula5 = MathTex(r"y^\prime", r"=", r"""
+                                        \begin{bmatrix}
+                                        \cos\theta \\ 
+                                        \sin\theta
+                                        \end{bmatrix}""", r"\cdot", r"""
+                                        \begin{bmatrix}
+                                        x - R\cos\theta \\ 
+                                        -R\sin\theta
+                                        \end{bmatrix}"""
+                                      ).next_to(rvec_formula, DOWN).scale(.8)
+        yprime_mat_formula5[0].set_color(RED);
+        yprime_mat_formula5[2].set_color(GREEN); yprime_mat_formula5[-1].set_color(BLUE)
+        self.play(
+            TransformMatchingTex(yprime_mat_formula4, yprime_mat_formula5),
+            run_time=2
+        )
+        self.wait(1)
+        
+        yprime_mat_formula6 = MathTex(r"y^\prime", r"=", r"(-\cos\theta)", r"\cdot" ,r"(x - R\cos\theta)", r"+", r"\\"
+                                    r"(\sin\theta)", r"\cdot" ,r"(-R\sin\theta)")
+        yprime_mat_formula6[0].set_color(RED)
+        yprime_mat_formula6.next_to(rvec_formula, DOWN).scale(.8)
+        self.play(
+            TransformMatchingTex(yprime_mat_formula5, yprime_mat_formula6),
+            run_time=2
+        )
+        self.wait(1)
+        
+        # now clear the previous formula from the top
+        
+        formula_clear_objs = [integration_pt_formula,
+                              cvec_formula, observation_pt_formula, rvec_formula]
+        formula_clear_anims = [Unwrite(obj) for obj in formula_clear_objs]
+        self.play(
+            AnimationGroup(
+            AnimationGroup(*formula_clear_anims),
+            yprime_mat_formula6.animate.to_edge(UP),
+            lag_ratio=.5
+            ),
+            run_time=3
+        )
+        self.wait(1)
+        
+        yprime_mat_formula7 = MathTex(
+            "=R", r"\left(-", r"{x", r"\over", r"R}", r"\cos\theta", "+", r"\cos^2\theta", "+", r"\sin^2\theta", r"\right)"
+        ).scale(.8).next_to(yprime_mat_formula6, DOWN)
+        
+        self.play(
+            Write(yprime_mat_formula7),
+            run_time=2
+        )
+        self.wait(1)
+        
+        # replace x/r with beta
+        yprime_mat_formula8 = MathTex(
+            "=R", r"\left(-", r"\beta\cos\theta", "+", r"\cos^2\theta", "+", r"\sin^2\theta", r"\right)"
+        ).scale(.8).next_to(yprime_mat_formula6, DOWN)
+        self.play(TransformMatchingTex(yprime_mat_formula7, yprime_mat_formula8), run_time=2)
+        
+        # indicate the part to use pythagorean identity
+        self.play(
+            Indicate(yprime_mat_formula8[-4:]), run_time=2)
+        yprime_mat_formula9_tex_string_by_part = [yprime_mat_formula8[i].get_tex_string() for i in range(len(yprime_mat_formula8))]
+        yprime_mat_formula9_tex_string_by_part = yprime_mat_formula9_tex_string_by_part[:-4].copy()
+        yprime_mat_formula9_tex_string_by_part.append(r"1"); yprime_mat_formula9_tex_string_by_part.append(r"\right)") 
+        yprime_mat_formula9 = MathTex(*yprime_mat_formula9_tex_string_by_part).scale(.8).next_to(yprime_mat_formula6, DOWN)
+        self.play(TransformMatchingTex(yprime_mat_formula8, yprime_mat_formula9), run_time=2)
+        self.wait(1)
+        
+        # move the bz formula to the down side of this, and plug it in
+        self.play(bz_formula_tex.animate.next_to(yprime_mat_formula9, DOWN), run_time=2)
+        self.wait(1)
+        
+        # replace the yprime in the bz formula
+        bz_formula_other_tex_str =[yprime_mat_formula9[1:][i].get_tex_string() for i in range(len(yprime_mat_formula9[1:]))]
+        bz_formula_2 = MathTex(
+            r"{2k\lambda_I", r"R", *bz_formula_other_tex_str, r"\over", r"|\vec{r}^2|}", "\mathrm d l").scale(.8).next_to(yprime_mat_formula9, DOWN, buff=.4)
+        bz_formula_2[-2].set_color(BLUE)
+        for sub_tex in bz_formula_other_tex_str:
+            bz_formula_2.set_color_by_tex(sub_tex, RED)
+        self.play(TransformMatchingTex(bz_formula_tex, bz_formula_2), run_time=2)
+        self.wait(1)
+        
+        # use matrix form of rvec to replace the rvec inside the bz formula2 
+        rvec_formula_cpy = MathTex(rvec_formula.get_tex_string()).next_to(yprime_formula, DOWN).scale(.8).set_color(BLUE)
+        self.play(Write(rvec_formula_cpy), run_time=1)
+        
+        bz_formula_3_by_part_tex = [bz_formula_2[i].get_tex_string() for i in range(len(bz_formula_2))]
+        bz_formula_3_by_part_tex[-2] = r"(x - R\cos\theta)^2 + (R\sin\theta)^2}"
+        bz_formula_3 = MathTex(*bz_formula_3_by_part_tex).scale(.8).next_to(yprime_mat_formula9, DOWN, buff=.4)
+        for sub_tex in bz_formula_other_tex_str:
+            bz_formula_3.set_color_by_tex(sub_tex, RED)
+        bz_formula_3[-2].set_color(BLUE); 
+        self.play(TransformMatchingTex(bz_formula_2, bz_formula_3), run_time=2)
+        self.wait(1)
+        self.play(Unwrite(rvec_formula_cpy), run_time=1)
+        self.wait(1)
+        
+        bz_formula_4 = MathTex(
+            "{2R", r"(1-\beta\cos\theta)", "k", r"\lambda_I", r"\over", r"x^2 - 2xR\cos\theta +", r"R^2\cos^2\theta + R^2\sin^2\theta}", "\mathrm d l"
+        ).next_to(bz_formula_3, DOWN).scale(.8)
+        bz_formula_4[5:7].set_color(BLUE)
+        bz_formula_4[1].set_color(RED)
+        self.play(Write(bz_formula_4, run_time=2), circ_center_tracker[0].animate.increment_value(-.3))
+        self.wait(1)
+        
+        # indicate the part to use pythagorean identity
+        self.play(Indicate(bz_formula_4[-2]), run_time=2)
+        self.wait(1)
+        
+        bz_formula_5 = MathTex(
+            "{2R", r"(1-\beta\cos\theta)", "k", r"\lambda_I", r"\over", r"x^2 - ", r"2x","R", r"\cos\theta +", r"R^2}", "\mathrm d l"
+        ).next_to(bz_formula_3, DOWN).scale(.8)
+        bz_formula_5[5:-1].set_color(BLUE)
+        bz_formula_5[1].set_color(RED)
+        self.play(TransformMatchingTex(bz_formula_4, bz_formula_5), circ_center_tracker[0].animate.increment_value(.3), run_time=2)
+        self.wait(1)
+        
+        # indicate the R in denominator that could be reduced
+        self.play(
+            Indicate(bz_formula_5[-2]), 
+            Indicate(bz_formula_5[-4]), run_time=2)
+        self.wait(1)
+        
+        bz_formula_6 = MathTex(
+            "{2R", r"(1-\beta\cos\theta)", "k", r"\lambda_I", r"\over", r"R^2", r"(\beta^2 - 2\beta\cos\theta + 1)}", "\mathrm d l"
+        ).next_to(bz_formula_3, DOWN).scale(.8)
+        bz_formula_6[5:-1].set_color(BLUE)
+        bz_formula_6[1].set_color(RED)
+        self.play(TransformMatchingTex(bz_formula_5, bz_formula_6), run_time=2)
+        self.wait(1)
+        
+        # indicate the R in both denominator and numerator, and cancel them
+        self.play(
+            Indicate(bz_formula_6[0]),
+            Indicate(bz_formula_6[-3])
+        )
+        self.wait(1)
+        
+        bz_formula_7 = MathTex(
+            "{2", r"(1-\beta\cos\theta)", "k", r"\lambda_I", r"\over", r"R", r"(\beta^2 - 2\beta\cos\theta + 1)}", "\mathrm d l"
+        ).next_to(bz_formula_3, DOWN).scale(.8)
+        bz_formula_7[5:-1].set_color(BLUE); bz_formula_7[1].set_color(RED)
+        self.play(TransformMatchingTex(bz_formula_6, bz_formula_7), run_time=2)
+        self.wait(1)
+        
+        # now try to replace the dl with d\theta
+        self.play(
+            Indicate(bz_formula_7[-1])
+        )
+        
+        arr_from_q_theta_tex_to_dl = Line(start = q_theta_tex.get_left() + LEFT * .1, end = bz_formula_7[-1].get_right() + RIGHT + .1).add_tip(**TIP_CFG)
+        self.play(
+            Indicate(q_theta_tex),
+            Write(arr_from_q_theta_tex_to_dl),
+            run_time=2
+        )
+        self.play(Unwrite(arr_from_q_theta_tex_to_dl), run_time=1)
+        self.wait(1)
+
+        # clear up the screen 
+        clearing_vgrp = VGroup(bz_formula_3, yprime_mat_formula9, yprime_formula,
+                               q_theta_tex, arr_from_theta_to_yprime_form, qmark_on_arr, yprime_mat_formula6)
+        orig_bz_formula_7_pos = bz_formula_7.get_center()
+        self.play(
+            AnimationGroup(
+                Unwrite(clearing_vgrp),
+                bz_formula_7.animate.to_corner(UR),
+                lag_ratio = .7
+            ),
+            run_time=3
+        )
+        self.wait(1)
+    
+        zoomed_cam = self.zoomed_camera
+        zoomed_disp = self.zoomed_display
+        zoomed_frame = zoomed_cam.frame
+        zoomed_disp.next_to(circ, RIGHT).set_width(5).shift(RIGHT)
+        zoomed_frame.move_to(integration_pt)
+        self.remove(circum_x_tex, circum_y_tex)
+        self.activate_zooming(True)
+        # self.play(
+        #     self.get_zoomed_display_pop_out_animation()
+        # )
+        self.wait(1)
+        
+        # move theta a little to show what does dl mean 
+        THETA_TWEAK_VAL = 8 * DEGREES
+        trace = TracedPath(integration_pt_pos, color=PURPLE)
+        self.add(trace)
+        prev_int_pt_pos = integration_pt_pos()
+        self.play(
+            theta_var_tracker.animate.increment_value(THETA_TWEAK_VAL),
+        )
+        self.play(
+            theta_var_tracker.animate.increment_value(-THETA_TWEAK_VAL * 2),
+        )
+        
+        dl_tex = MathTex("\mathrm d l").scale(.3).next_to(prev_int_pt_pos, RIGHT, buff=.1)
+        self.play(Write(dl_tex))
+        self.wait(1)
+        
+        # write that dl = R d\theta
+        dl_formula = MathTex(r"\mathrm d l = R \mathrm d \theta").scale(.8).next_to(bz_formula_7, DOWN)
+        self.play(Write(dl_formula))
+        self.wait(1)
+        self.play(
+            self.get_zoomed_display_pop_out_animation(),
+            rate_func=lambda t: smooth(1 - t)
+        )
+        self.wait(1)
+        # remove the zooming camera
+        # self.play(FadeOut(zoomed_frame))
+        self.remove(zoomed_frame, zoomed_disp, zoomed_cam)
+        self.wait(1)
+        
+        # move the previous formula to the center
+        shfit_vec = bz_formula_7.get_center() - orig_bz_formula_7_pos
+        shfit_vec[1] = .0
+        print("shift vec ", shfit_vec)
+        self.play(
+            bz_formula_7.animate.shift(LEFT * shfit_vec), dl_formula.animate.shift(LEFT * shfit_vec)
+        )
+        self.wait(1)
+        
+        final_dbz_formula = MathTex(r"\mathrm d B=", "{2", r"(1-\beta\cos\theta)", "k", r"\lambda_I", r"\over", r"R", r"(\beta^2 - 2\beta\cos\theta + 1)}", r"R", r"\mathrm d \theta").next_to(dl_formula, DOWN).scale(.8)
+        self.play(Write(final_dbz_formula))
+        self.wait(1)
+        # cancle out the R
+        self.play(Indicate(final_dbz_formula[-2]), Indicate(final_dbz_formula[-4]))
+    
+        final_dbz_formula2 = MathTex(r"\mathrm d B=", "{2", r"(1-\beta\cos\theta)", "k", r"\lambda_I", r"\over",
+                                      r"(\beta^2 - 2\beta\cos\theta + 1)}", r"\mathrm d \theta").next_to(dl_formula, DOWN).scale(.8)
+        self.play(TransformMatchingTex(final_dbz_formula, final_dbz_formula2))
+        self.wait(1)
+        
+        final_bz_formula = MathTex(r"B=", "\int_0^{2\pi}", r"\mathrm d B=", "{2", r"(1-\beta\cos\theta)",
+                                   "k", r"\lambda_I", r"\over", r"R", r"(\beta^2 - 2\beta\cos\theta + 1)}", r"R \mathrm d \theta").next_to(final_dbz_formula, DOWN).scale(.8).shift(RIGHT * .5)
+        self.play(Write(final_bz_formula))
+        self.wait(1)
         
 class InfLineAmpLaw(ThreeDScene):
     def ampere_infline_int(self, alpha: float, current: float) -> float:
@@ -676,6 +935,7 @@ class InfLineAmpLaw(ThreeDScene):
             func=mag_field.func, x_range=sxrg, y_range=syrg, opacity=.5)
         mag_f_create_anim = AnimationGroup(SpinInFromNothing(
             mag_field), SpinInFromNothing(mag_streamlines))
+        # sprialIn -> 
         self.play(
             LaggedStart(
                 electron_moving_anim,
