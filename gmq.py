@@ -798,7 +798,7 @@ class Final(Scene):
 
         formula_target = MathTex(
             r'\int_0^{2\pi}',
-            r'{1', r'\over', r'(\beta+1)^2', r'-\frac{4\beta}{1+\tan^2\frac{\theta}{2}}}',
+            r'{1', r'\over', r'(1+\beta)^2', r'-\frac{4\beta}{1+\tan^2\frac{\theta}{2}}}',
             r'\mathrm d\theta'
         )
         self.play(Transform(formula, formula_target))
@@ -806,7 +806,7 @@ class Final(Scene):
 
         formula_target = MathTex(
             r'\int_0^{2\pi}',
-            r'{1+\tan^2\frac{\theta}{2}', r'\over', r'(\beta+1)^2', r'\left(1', r'+\tan^2\frac{\theta}{2}\right)', r'-4\beta}',
+            r'{1+\tan^2\frac{\theta}{2}', r'\over', r'(1+\beta)^2', r'\left(1', r'+\tan^2\frac{\theta}{2}\right)', r'-4\beta}',
             r'\mathrm d\theta'
         )
         self.play(
@@ -823,7 +823,7 @@ class Final(Scene):
 
         formula_target = MathTex(
             r'\int_0^{2\pi}',
-            r'{1+\tan^2\frac{\theta}{2}', r'\over', r'(\beta+1)^2', r'+(\beta+1)^2\tan^2\frac{\theta}{2}', r'-4\beta}',
+            r'{1+\tan^2\frac{\theta}{2}', r'\over', r'(1+\beta)^2', r'+(1+\beta)^2\tan^2\frac{\theta}{2}', r'-4\beta}',
             r'\mathrm d\theta'
         )
         self.play(
@@ -840,7 +840,7 @@ class Final(Scene):
         self.wait(2)
 
         helper_formula = MathTex(
-            r'(\beta+1)^2', r'-', r'4\beta', r'=', r'(\beta-1)^2'
+            r'(1+\beta)^2', r'-', r'4\beta', r'=', r'(1-\beta)^2'
         ).next_to(formula, DOWN)
         helper_formula[0].set_color(RED)
         helper_formula[2].set_color(RED)
@@ -856,7 +856,7 @@ class Final(Scene):
 
         formula_target = MathTex(
             r'\int_0^{2\pi}',
-            r'{\sec^2\frac{\theta}{2}', r'\over', r'(\beta-1)^2', r'+(\beta+1)^2\tan^2\frac{\theta}{2}}',
+            r'{\sec^2\frac{\theta}{2}', r'\over', r'(1-\beta)^2', r'+(1+\beta)^2\tan^2\frac{\theta}{2}}',
             r'\mathrm d\theta'
         )
         self.play(
@@ -868,5 +868,239 @@ class Final(Scene):
             ReplacementTransform(formula[6], formula_target[5]),
         )
         self.play(Unwrite(helper_formula), Unwrite(helper_formula_2))
+        formula = formula_target
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'2\int_0^{2\pi}',
+            r'{\sec^2\frac{\theta}{2}', r'\over', r'(1-\beta)^2', r'+(1+\beta)^2\tan^2\frac{\theta}{2}}',
+            r'\mathrm d\frac{\theta}{2}'
+        )
+        self.play(Transform(formula, formula_target))
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'2\int_{-\infty}^{+\infty}',
+            r'{1', r'\over', r'(1-\beta)^2', r'+(1+\beta)^2', r'\tan^2\frac{\theta}{2}}',
+            r'\mathrm d\left(\tan\frac{\theta}{2}\right)'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            FadeIn(formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            ReplacementTransform(formula[3], formula_target[3]),
+            ReplacementTransform(formula[4], formula_target[4:6]),
+            ReplacementTransform(VGroup(formula[1], formula[5]), formula_target[6]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'2\int_{-\infty}^{+\infty}',
+            r'{1', r'\over', r'(1-\beta)^2', r'+(1+\beta)^2', r'u^2}',
+            r'\mathrm du'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            ReplacementTransform(formula[3], formula_target[3]),
+            ReplacementTransform(formula[4], formula_target[4]),
+            ReplacementTransform(formula[5], formula_target[5]),
+            ReplacementTransform(formula[6], formula_target[6]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        prompt.generate_target()
+        prompt_formula.generate_target()
+        prompt_formula.target = MathTex(
+            r'\pi+',
+            r'\frac{1-\beta^2}{2}',
+            r'\cdot 2',
+            r'\int_{-\infty}^{+\infty}',
+            r'{1', r'\over', r'(1-\beta)^2', r'+(1+\beta)^2', r'u^2}',
+            r'\mathrm du'
+        )
+        prompt_formula.target[3:].set_color(YELLOW)
+        VGroup(prompt_formula.target[0:3], prompt.target, prompt_formula.target[3:]).arrange(RIGHT).to_edge(UP)
+        self.play(MoveToTarget(prompt), FadeOut(prompt_formula), Write(prompt_formula.target[0:2]), ReplacementTransform(formula.copy(), prompt_formula.target[2:]))
+        prompt_formula = prompt_formula.target
+        self.wait(2)
+
+        prompt_formula.generate_target()
+        prompt.generate_target()
+        prompt_formula.target = MathTex(
+            r'\pi+',
+            r'(1-\beta^2)',
+            r'\int_{-\infty}^{+\infty}',
+            r'{1', r'\over', r'(1-\beta)^2', r'+(1+\beta)^2', r'u^2}',
+            r'\mathrm du'
+        )
+        prompt_formula.target[2:].set_color(YELLOW)
+        VGroup(prompt_formula.target[0:2], prompt.target, prompt_formula.target[2:]).arrange(RIGHT).to_edge(UP)
+        self.play(MoveToTarget(prompt), MoveToTarget(prompt_formula))
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_{-\infty}^{+\infty}',
+            r'{1', r'\over', r'(1-\beta)^2', r'+(1+\beta)^2', r'u^2}',
+            r'\mathrm du'
+        )
+        self.play(Transform(formula, formula_target))
+        self.wait(2)
+
+        u_sub_formula = MathTex(
+            r'u', r'=', r'{1-\beta', r'\over', r'1+\beta}', r'\tan\phi'
+        ).next_to(formula, DOWN)
+        u_sub_formula[0].set_color(RED)
+        self.play(Write(u_sub_formula), formula[5].animate.set_color(RED))
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_{-\infty}^{+\infty}',
+            r'{1', r'\over', r'(1-\beta)^2', r'+(1-\beta)^2', r'\tan^2\phi}',
+            r'\mathrm d\left(\frac{1-\beta}{1+\beta}\tan\phi\right)'
+        )
+        self.play(Transform(formula, formula_target))
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_{-\infty}^{+\infty}',
+            r'{1', r'\over', r'(1-\beta)^2', r'(1+\tan^2\phi)}',
+            r'\mathrm d\left(', r'\frac{1-\beta}{1+\beta}', r'\tan\phi\right)'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            ReplacementTransform(formula[3:6], formula_target[3:5]),
+            ReplacementTransform(formula[6], formula_target[5:]),
+        )
+        formula = formula_target
+        self.wait(2)
+        self.play(Unwrite(u_sub_formula))
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_{-\infty}^{+\infty}',
+            r'{1', r'\over', r'(1-\beta)^2', r'\sec^2\phi}',
+            r'\cdot\frac{1-\beta}{1+\beta}',
+            r'\mathrm d(\tan\phi)'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            ReplacementTransform(formula[3], formula_target[3]),
+            ReplacementTransform(formula[4], formula_target[4]),
+            ReplacementTransform(formula[6], formula_target[5]),
+            TransformMatchingShapes(VGroup(formula[5], formula[7]), formula_target[6]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        self.play(Indicate(formula[3]), Indicate(formula[5]))
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_{-\infty}^{+\infty}',
+            r'{1', r'\over', r'(1-\beta)(1+\beta)', r'\sec^2\phi}',
+            r'\mathrm d(\tan\phi)'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            TransformMatchingShapes(VGroup(formula[3], formula[5]), formula_target[3]),
+            ReplacementTransform(formula[4], formula_target[4]),
+            ReplacementTransform(formula[6], formula_target[5]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_{-\frac{\pi}{2}}^{+\frac{\pi}{2}}',
+            r'{\sec^2\phi', r'\over', r'(1-\beta)(1+\beta)', r'\sec^2\phi}',
+            r'\mathrm d\phi'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(VGroup(formula[1], formula[5]), formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            ReplacementTransform(formula[3], formula_target[3]),
+            ReplacementTransform(formula[4], formula_target[4]),
+            FadeIn(formula_target[5]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        self.play(Indicate(formula[1], color = RED), Indicate(formula[4], color = RED))
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_{-\frac{\pi}{2}}^{+\frac{\pi}{2}}',
+            r'{1', r'\over', r'(1-\beta)(1+\beta)}',
+            r'\mathrm d\phi'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            TransformMatchingShapes(formula[3:5], formula_target[3]),
+            ReplacementTransform(formula[5], formula_target[4]),
+        )
+        formula = formula_target
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'{1', r'\over', r'(1-\beta)(1+\beta)}',
+            r'\int_{-\frac{\pi}{2}}^{+\frac{\pi}{2}}',
+            r'\mathrm d\phi'
+        )
+        self.play(TransformMatchingTex(formula, formula_target))
+        formula = formula_target
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'{1', r'\over', r'(1-\beta)(1+\beta)}',
+            r'\cdot\pi'
+        )
+        self.play(
+            ReplacementTransform(formula[0], formula_target[0]),
+            ReplacementTransform(formula[1], formula_target[1]),
+            ReplacementTransform(formula[2], formula_target[2]),
+            ReplacementTransform(formula[3:], formula_target[3]),
+        )
+        formula = formula_target
+        self.wait(2)
+        
+        formula_target = MathTex(r'{\pi', r'\over', r'1-\beta^2}')
+        self.play(Transform(formula, formula_target))
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\pi+(1-\beta)',
+            r'\frac{\pi}{1-\beta^2}',
+        )
+
+        self.play(
+            ReplacementTransform(prompt_formula[0:2], formula_target[0]),
+            ReplacementTransform(formula, formula_target[1]),
+            ReplacementTransform(prompt_formula[2:], formula_target[1]),
+            Unwrite(prompt)
+        )
+        formula = formula_target
+        self.wait(2)
+
+        formula_target = MathTex(r'2\pi')
+        self.play(Transform(formula, formula_target))
+        self.wait(2)
+
+        formula_target = MathTex(
+            r'\int_{0}^{2\pi}\frac{1-\beta\cos\theta}{\beta^2-2\beta\cos\theta+1}\mathrm d\theta',
+            r'=', r'2\pi'
+        )
+        self.play(Write(formula_target[0:2]), ReplacementTransform(formula, formula_target[2]))
         formula = formula_target
         self.wait(2)
