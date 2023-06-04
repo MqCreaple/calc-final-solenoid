@@ -155,7 +155,7 @@ class CoordTransFromStackToCirc(ThreeDScene):
         ROT_DEMO_END_ANG = -(PI + ROT_DEMO_ANG_OFFSET_ABS)
         ROT_DEMO_ANG_OFFSET = ROT_DEMO_END_ANG - ROT_DEMO_START_ANG
 
-        bz_formula_tex = MathTex(r"{2k\lambda_I", r"y", r"\over", r"x^2", r"+", r"y^2}", "\mathrm{d}l").to_corner(UL)
+        bz_formula_tex = MathTex(r"\frac{\mu_0}{2\pi}{\lambda_I", r"y", r"\over", r"x^2", r"+", r"y^2}", "\mathrm{d}l").to_corner(UL)
         # paly indication animation on y^2 and x^2 + y^2 in the formula
         # indicates that we want to figure out how to represent these two values in theta
         # which is the integration variable we will use in the circular integration
@@ -519,7 +519,7 @@ class CircIntFormula(ZoomedScene):
         self.play(circ_center_tracker[0].animate.set_value(new_cent_x), circ_radius_tracker.animate.set_value(circ_radius() * .7), run_time=1.5)
         self.wait(1)
         
-        bz_formula_tex = MathTex(r"{2k\lambda_I", r"y^\prime", r"\over", r"|\vec{r}^2|}", r"\mathrm d l").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec{r}^2": BLUE}).to_corner(UR)
+        bz_formula_tex = MathTex(r"\frac{\mu_0}{2\pi}{\lambda_I", r"y^\prime", r"\over", r"|\vec{r}^2|}", r"\mathrm d l").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec{r}^2": BLUE}).to_corner(UR)
         yprime_formula = MathTex(r"y^\prime", r"=" ,r"{\vec c", r"\cdot", r"\vec r", r"\over", r"|", r"\vec c", r"|}").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec c": GREEN, r"\vec r": BLUE}).next_to(bz_formula_tex, DOWN)
         self.play(Write(yprime_formula), Write(bz_formula_tex))
         q_theta_tex = MathTex(r"\theta").next_to(yprime_formula, RIGHT, buff=1)
@@ -727,7 +727,7 @@ class CircIntFormula(ZoomedScene):
         # replace the yprime in the bz formula
         bz_formula_other_tex_str =[yprime_mat_formula9[1:][i].get_tex_string() for i in range(len(yprime_mat_formula9[1:]))]
         bz_formula_2 = MathTex(
-            r"{2k\lambda_I", r"R", *bz_formula_other_tex_str, r"\over", r"|\vec{r}^2|}", "\mathrm d l").scale(.8).next_to(yprime_mat_formula9, DOWN, buff=.4)
+            r"\frac{\mu_0}{2\pi}{\lambda_I", r"R", *bz_formula_other_tex_str, r"\over", r"|\vec{r}^2|}", "\mathrm d l").scale(.8).next_to(yprime_mat_formula9, DOWN, buff=.4)
         bz_formula_2[-2].set_color(BLUE)
         for sub_tex in bz_formula_other_tex_str:
             bz_formula_2.set_color_by_tex(sub_tex, RED)

@@ -19,34 +19,69 @@ class BiotSavart(ThreeDScene):
         axes = ThreeDAxes(x_range = [-2, 2], y_range = [-2, 2], z_range = [-2, 2])
         self.add(axes)
         self.set_camera_orientation(phi=60 * DEGREES, theta=45 * DEGREES)
+        axes_labels = axes.get_axis_labels(x_label = r"x", y_label = r"y", z_label = r"z")
+        self.face_camera(axes_labels[0])
+        self.play(Write(axes_labels))
         
         # demonstrate Biot-Savart Law
-        current = Vector(direction = np.array([0, 0, 1]), color = YELLOW)
+        current = Vector(np.array([0, 0, 1]), color = YELLOW)
         current_label = self.face_camera(MathTex(r'I\mathrm d\vec l', color = YELLOW)).next_to(current, DOWN)
         observer = Vector(direction = np.array([2, 3, 0]), color = RED)
+        observer_label = self.face_camera(MathTex(r'\vec r', color = RED)).next_to(observer, LEFT)
         magnetic = self.magnetic_vec(current, observer)
         magnetic_label = self.face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)
-        self.play(Create(current), Write(current_label), Create(magnetic), Write(magnetic_label))
-        self.wait(0.5)
-        self.play(Create(observer))
+        magnetic.add_updater(lambda m: m.become(self.magnetic_vec(current, observer)))
+        magnetic_label.add_updater(lambda m: m.become(self.face_camera(MathTex(r'\vec B', color = BLUE)).next_to(magnetic, UP)))
+        observer_label.add_updater(lambda m: m.become(self.face_camera(MathTex(r'\vec r', color = RED)).next_to(observer, LEFT)))
+        current_label.add_updater(lambda m: m.become(self.face_camera(MathTex(r'I\mathrm d\vec l', color = YELLOW)).next_to(current, DOWN)))
+        self.play(Create(current), Write(current_label))
+        self.wait(1)
+        self.play(Create(observer), Write(observer_label))
+        self.wait(1)
+        self.play(Create(magnetic), Write(magnetic_label))
+        self.wait(1)
+
+        formula = MathTex(
+            r'\mathrm dB', r'=', r'\frac{\mu_0}{4\pi}', r'{I', r'\mathrm d\vec l', r'\times', r'\vec r',
+            r'\over',
+            r'r^3}'
+        )
+        formula[0].set_color(BLUE)
+        formula[3].set_color(YELLOW)
+        formula[6].set_color(RED); formula[8].set_color(RED)
+        formula.to_corner(UL)
+        self.add_fixed_in_frame_mobjects(formula)
+        self.remove(formula)
+        self.play(Write(formula))
+        self.wait(1)
+
+        current_new = Vector(np.array([0, 0, 2]), color = YELLOW)
+        self.play(Transform(current, current_new))
+        self.wait(1)
+        
+        current_new = Vector(np.array([0, 0, 1]), color = YELLOW)
+        self.play(Transform(current, current_new))
         self.wait(1)
 
         observer_new = Vector(direction = [2 / 2, 3 / 2, 0], color = RED)
-        magnetic_new = self.magnetic_vec(current, observer_new)
-        magnetic_label_new = magnetic_label.copy().next_to(magnetic_new, UP)
-        self.play(Transform(observer, observer_new), Transform(magnetic, magnetic_new), Transform(magnetic_label, magnetic_label_new))
+        self.play(Transform(observer, observer_new))
+        self.wait(1)
+
+        observer_new = Vector(direction = [2, 3, 0], color = RED)
+        self.play(Transform(observer, observer_new))
         self.wait(1)
 
         observer_new = Vector(direction = [1, 3, 0], color = RED)
-        magnetic_new = self.magnetic_vec(current, observer_new)
-        magnetic_label_new = magnetic_label.copy().next_to(magnetic_new, UP)
-        self.play(Transform(observer, observer_new), Transform(magnetic, magnetic_new), Transform(magnetic_label, magnetic_label_new))
+        self.play(Transform(observer, observer_new))
         self.wait(1)
 
         observer_new = Vector(direction = [2.5, 1.5, 0], color = RED)
-        magnetic_new = self.magnetic_vec(current, observer_new)
-        magnetic_label_new = magnetic_label.copy().next_to(magnetic_new, UP)
-        self.play(Transform(observer, observer_new), Transform(magnetic, magnetic_new), Transform(magnetic_label, magnetic_label_new))
+        self.play(Transform(observer, observer_new))
+        self.wait(1)
+
+        observer_new = Vector(direction = [3, 1, 0], color = RED)
+        current_new = Vector(np.array([0.5, 0, 1]), color = YELLOW)
+        self.play(Transform(observer, observer_new), Transform(current, current_new))
         self.wait(1)
 
 solenoid_radius = 1.5
@@ -69,7 +104,7 @@ class SolenoidSlice(ThreeDScene):
         )
 
     def cylinder_surface(self, rad: float, z_len: float, n: int):
-        return helper.MySurface(
+        return helper.MySur(
             lambda u, v: np.array([
                 rad * np.cos(TAU * v),
                 rad * np.sin(TAU * v),
@@ -83,7 +118,13 @@ class SolenoidSlice(ThreeDScene):
 
     def construct(self):
         axes = ThreeDAxes(x_range = [-2, 2], y_range = [-2, 2], z_range = [-2, 2])
-        self.add(axes)
+        axes_labels = axes.get_axis_labels(x_label = r"x", y_label = r"y", z_label = r"z")
+        axes_labels[0].add_updater(lambda m: m.become(self.face_camera(MathTex(r"x", color = WHITE))
+                                                      .next_to(axes.get_x_axis(), direction=axes.c2p(1, 0, 0))))
+        axes_labels[1].add_updater(lambda m: m.become(self.face_camera(MathTex(r"y", color = WHITE))
+                                                      .next_to(axes.get_y_axis(), direction=axes.c2p(0, 1, 0))))
+        axes_labels[2].add_updater(lambda m: m.become(self.face_camera(MathTex(r"z", color = WHITE)).next_to(axes.get_z_axis(), OUT)))
+        self.add(axes, axes_labels)
         self.set_camera_orientation(phi=80 * DEGREES, theta=45 * DEGREES)
         
         curve = self.cylinder_curve(solenoid_radius, 16, 40)
@@ -652,10 +693,10 @@ class IntegrateSlice(Scene):
             r'=& \int_{-\infty}^{\infty}\frac{\mu_0}{4\pi}\frac{\lambda_I y}{(x^2+y^2+z^2)^{\frac 32}}\mathrm dz\\',
             r'=& \frac{\mu_0}{4\pi}\lambda_Iy \int_{-\infty}^{\infty}\frac{1}{(x^2+y^2+z^2)^{\frac 32}}\mathrm dz\\',
             r'\stackrel{\alpha^2=x^2+y^2}{=}& \frac{\mu_0}{2\pi}\lambda_Iy \int_{-\infty}^{\infty}\frac{1}{[\alpha^2(1+\tan^2\theta)]^{\frac 32}}\mathrm d(\alpha\tan\theta)\\',
-            r'=& \frac{\mu_0}{4\pi}\lambda_Iy \int_{-frac{\pi}{2}}^{+\frac{\pi}{2}}\frac{\alpha\sec^2\theta}{(\alpha^2\sec^2\theta)^{\frac 32}}\mathrm d\theta\\',
+            r'=& \frac{\mu_0}{4\pi}\lambda_Iy \int_{-\frac{\pi}{2}}^{+\frac{\pi}{2}}\frac{\alpha\sec^2\theta}{(\alpha^2\sec^2\theta)^{\frac 32}}\mathrm d\theta\\',
         ).scale(0.75).to_edge(LEFT)
         formula_target_2 = MathTex(
-            r'=& \frac{\mu_0}{4\pi}\lambda_Iy \int_{-frac{\pi}{2}}^{+\frac{\pi}{2}}\frac{\alpha\sec^2\theta}{\alpha^3\sec^3\theta}\mathrm d\theta\\',
+            r'=& \frac{\mu_0}{4\pi}\lambda_Iy \int_{-\frac{\pi}{2}}^{+\frac{\pi}{2}}\frac{\alpha\sec^2\theta}{\alpha^3\sec^3\theta}\mathrm d\theta\\',
             r'=& \frac{\mu_0}{4\pi}\frac{\lambda_Iy}{\alpha^2} \int_{-\frac{\pi}{2}}^{+\frac{\pi}{2}}\frac{1}{\sec\theta}\mathrm d\theta\\',
             r'=& \frac{\mu_0}{4\pi}\frac{\lambda_Iy}{x^2+y^2} \int_{-\frac{\pi}{2}}^{+\frac{\pi}{2}}\cos\theta\mathrm d\theta\\',
             r'=& \frac{\mu_0}{4\pi}\frac{\lambda_Iy}{x^2+y^2} \sin\theta\Big |_{-\frac{\pi}{2}}^{+\frac{\pi}{2}}\\',
