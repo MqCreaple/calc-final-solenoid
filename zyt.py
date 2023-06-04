@@ -520,7 +520,7 @@ class CircIntFormula(ZoomedScene):
         self.play(circ_center_tracker[0].animate.set_value(new_cent_x), circ_radius_tracker.animate.set_value(circ_radius() * .7), run_time=1.5)
         self.wait(1)
         
-        bz_formula_tex = MathTex(r"{2k\lambda_I", r"y^\prime", r"\over", r"|\vec{r}|^2}", r"\mathrm d l").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec{r}^2": BLUE}).to_corner(UR)
+        bz_formula_tex = MathTex(r"\frac{\mu_0}{2\pi}{\lambda_I", r"y^\prime", r"\over", r"|\vec{r}|^2}", r"\mathrm d l").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec{r}^2": BLUE}).to_corner(UR)
         yprime_formula = MathTex(r"y^\prime", r"=" ,r"{\vec c", r"\cdot", r"\vec r", r"\over", r"|", r"\vec c", r"|}").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec c": GREEN, r"\vec r": BLUE}).next_to(bz_formula_tex, DOWN)
         self.play(Write(yprime_formula), Write(bz_formula_tex))
         q_theta_tex = MathTex(r"\theta").next_to(yprime_formula, RIGHT, buff=1)
