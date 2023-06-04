@@ -155,17 +155,18 @@ class CoordTransFromStackToCirc(ThreeDScene):
         ROT_DEMO_END_ANG = -(PI + ROT_DEMO_ANG_OFFSET_ABS)
         ROT_DEMO_ANG_OFFSET = ROT_DEMO_END_ANG - ROT_DEMO_START_ANG
 
-        bz_formula_tex = MathTex(r"{2k\lambda_I", r"y", r"\over", r"x^2", r"+", r"y^2}", "\mathrm{d}l").to_corner(UL)
+        bz_formula_tex = MathTex(r"\frac{\mu_0}{2\pi}", r"{\lambda_I", r"y", r"\over", r"x^2", r"+", r"y^2}", "\mathrm{d}l").to_corner(UL)
         # paly indication animation on y^2 and x^2 + y^2 in the formula
         # indicates that we want to figure out how to represent these two values in theta
         # which is the integration variable we will use in the circular integration
         self.add_fixed_in_frame_mobjects(bz_formula_tex)
         self.remove(bz_formula_tex)
         self.play(Write(bz_formula_tex), run_time=1)
-        self.add_fixed_in_frame_updaters(bz_formula_tex)
-        self.play(Indicate(bz_formula_tex[1]), run_time=1)
         self.wait(1)
-        self.play(Indicate(bz_formula_tex[3:6]), run_time=1)
+        self.add_fixed_in_frame_updaters(bz_formula_tex)
+        self.play(Indicate(bz_formula_tex[2]), run_time=1)
+        self.wait(1)
+        self.play(Indicate(bz_formula_tex[4:7]), run_time=1)
         self.wait(1)
         d_theta_tex = MathTex(r"\mathrm{d}\theta").next_to(bz_formula_tex, RIGHT, buff=.8)
         arr_from_dtheta_to_bz_form = Arrow(start=d_theta_tex.get_left(), end=bz_formula_tex.get_right(), color=WHITE)
@@ -247,13 +248,13 @@ class CoordTransFromStackToCirc(ThreeDScene):
         # inciate that we can replace xprime^2 + yprime^2 with r^2
         
         self.play(Indicate(rvec_text), run_time=1.5)
-        self.play(Indicate(bz_formula_tex[3:6]), run_time=1.5) # tex[5] is yprime^2
+        self.play(Indicate(bz_formula_tex[4:7]), run_time=1.5) # tex[5] is yprime^2
         
         print(rvec_text in self.mobjects)
         
-        rvec_text_cpy = MathTex(r"\vec r", color=BLUE).move_to(UP * .114514)
+        rvec_text_cpy = MathTex(r"|\vec{r}|^2", color=BLUE).move_to(UP * .114514)
         self.add_fixed_in_frame_mobjects(rvec_text_cpy)
-        rvec_text_cpy.move_to(bz_formula_tex[3:6].get_center())
+        rvec_text_cpy.move_to(bz_formula_tex[4:7].get_center())
         self.remove(rvec_text_cpy)
         # self.play(
         #     rvec_text_cpy.animate.move_to(bz_formula_tex[5].get_center()),
@@ -262,21 +263,21 @@ class CoordTransFromStackToCirc(ThreeDScene):
         # TODO: make issue on github repo about this
         self.play(
             FadeIn(rvec_text_cpy),
-            FadeOut(bz_formula_tex[3:6])
+            FadeOut(bz_formula_tex[4:7])
         )
         
-        self.play(Indicate(bz_formula_tex[1])) # indicate y
+        self.play(Indicate(bz_formula_tex[2])) # indicate y
         self.play(Indicate(yprime_text), 
                   Circumscribe(yprime),
                   run_time = 1.5
                   ) # indicate yprime
         yprime_text_cpy = MathTex(r"y^\prime", color=RED).move_to(UP * .114514)
         self.add_fixed_in_frame_mobjects(yprime_text_cpy)
-        yprime_text_cpy.move_to(bz_formula_tex[1].get_center())
+        yprime_text_cpy.move_to(bz_formula_tex[2].get_center())
         self.remove(yprime_text_cpy)
         self.play(
             FadeIn(yprime_text_cpy),
-            FadeOut(bz_formula_tex[1])
+            FadeOut(bz_formula_tex[2])
         )
         
         
@@ -519,7 +520,7 @@ class CircIntFormula(ZoomedScene):
         self.play(circ_center_tracker[0].animate.set_value(new_cent_x), circ_radius_tracker.animate.set_value(circ_radius() * .7), run_time=1.5)
         self.wait(1)
         
-        bz_formula_tex = MathTex(r"{2k\lambda_I", r"y^\prime", r"\over", r"|\vec{r}^2|}", r"\mathrm d l").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec{r}^2": BLUE}).to_corner(UR)
+        bz_formula_tex = MathTex(r"{2k\lambda_I", r"y^\prime", r"\over", r"|\vec{r}|^2}", r"\mathrm d l").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec{r}^2": BLUE}).to_corner(UR)
         yprime_formula = MathTex(r"y^\prime", r"=" ,r"{\vec c", r"\cdot", r"\vec r", r"\over", r"|", r"\vec c", r"|}").set_color_by_tex_to_color_map({"y^\prime": RED, r"\vec c": GREEN, r"\vec r": BLUE}).next_to(bz_formula_tex, DOWN)
         self.play(Write(yprime_formula), Write(bz_formula_tex))
         q_theta_tex = MathTex(r"\theta").next_to(yprime_formula, RIGHT, buff=1)
@@ -727,7 +728,7 @@ class CircIntFormula(ZoomedScene):
         # replace the yprime in the bz formula
         bz_formula_other_tex_str =[yprime_mat_formula9[1:][i].get_tex_string() for i in range(len(yprime_mat_formula9[1:]))]
         bz_formula_2 = MathTex(
-            r"{2k\lambda_I", r"R", *bz_formula_other_tex_str, r"\over", r"|\vec{r}^2|}", "\mathrm d l").scale(.8).next_to(yprime_mat_formula9, DOWN, buff=.4)
+            r"{2k\lambda_I", r"R", *bz_formula_other_tex_str, r"\over", r"|\vec{r}|^2}", "\mathrm d l").scale(.8).next_to(yprime_mat_formula9, DOWN, buff=.4)
         bz_formula_2[-2].set_color(BLUE)
         for sub_tex in bz_formula_other_tex_str:
             bz_formula_2.set_color_by_tex(sub_tex, RED)
@@ -1026,7 +1027,7 @@ class SolenoidAmpLaw(ThreeDScene):
         # rotate the solenoid so that it will be horizontal
         sol_with_sign = VGroup(solenoid, inouts).rotate(90*DEGREES, axis=UP)
 
-        sol_wire = Wire(solenoid, current=2)
+        sol_wire = Wire(solenoid, current=2, samples=128)
         self.play(Create(solenoid))
 
         DOT_CNT = 25
@@ -1097,11 +1098,11 @@ class SolenoidAmpLaw(ThreeDScene):
         up_int_text =  MathTex(r"\oint \vec{B} \cdot \mathrm d\vec{l} \ (\text{up})").scale(.6).next_to(
             amp_rect_upline.get_start(), UP, buff=.15
         )
-        dn_int_text = MathTex(r"\oint \vec{B} \cdot \mathrm d\vec{l} \ (\text{up})").scale(.6).next_to(
+        dn_int_text = MathTex(r"\oint \vec{B} \cdot \mathrm d\vec{l} \ (\text{down})").scale(.6).next_to(
             amp_rect_downline.get_start(), DOWN, buff=.15)
-        lf_int_text = MathTex(r"\oint \vec{B} \cdot \mathrm d\vec{l} \ (\text{up})").scale(.6).next_to(
+        lf_int_text = MathTex(r"\oint \vec{B} \cdot \mathrm d\vec{l} \ (\text{left})").scale(.6).next_to(
             amp_rect_leftline.get_start(), LEFT, buff=.15)
-        rt_int_text = MathTex(r"\oint \vec{B} \cdot \mathrm d\vec{l} \ (\text{up})").scale(.6).next_to(
+        rt_int_text = MathTex(r"\oint \vec{B} \cdot \mathrm d\vec{l} \ (\text{right})").scale(.6).next_to(
             amp_rect_rightline.get_start(), RIGHT, buff=.15)
         int_segment.move_to(amp_rect_upline.get_start())
         lf_int_segment = int_segment.copy().move_to(amp_rect_leftline.get_start())
@@ -1150,7 +1151,7 @@ class SolenoidAmpLaw(ThreeDScene):
         self.play(Create(mag_circs))
         circs_dis = rt_circ.get_center() - lf_circ.get_center()
         move_len = solenoid.zlen - circs_dis
-        self.play(mag_circs.animate.shift(RIGHT * move_len), run_time=1.5)
+        self.play(mag_circs.animate.shift(RIGHT * move_len), run_time=3)
         self.play(FadeOut(mag_circs))
         self.wait(1)        
         
